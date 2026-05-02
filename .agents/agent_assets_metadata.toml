@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "aHBfanYPV16d6s1GTrcia"
+uri = "file://portfolio-html.zip"
+type = "unspecified"
+title = "portfolio-html.zip — Download your HTML/CSS/JS portfolio"
