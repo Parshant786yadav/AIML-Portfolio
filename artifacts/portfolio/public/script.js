@@ -131,7 +131,7 @@ document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
 
 /* ─── EmailJS config ─── */
 const EMAILJS_SERVICE_ID  = 'service_nqfe3w8';
-const EMAILJS_TEMPLATE_ID = 'uLILW4rO_SsOeANxb';
+const EMAILJS_TEMPLATE_ID = 'template_m601guu';
 const EMAILJS_PUBLIC_KEY  = 'HJe7pBSD9FnK2ielA';
 
 emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
