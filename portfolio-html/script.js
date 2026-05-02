@@ -146,17 +146,30 @@ function showToast() {
   setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
-form.addEventListener('submit', async (e) => {
+form.addEventListener('submit', (e) => {
   e.preventDefault();
+
+  const inputs = form.querySelectorAll('input, textarea');
+  const name    = inputs[0].value.trim();
+  const email   = inputs[1].value.trim();
+  const message = inputs[2].value.trim();
+
+  const subject = encodeURIComponent(`Portfolio Contact from ${name}`);
+  const body    = encodeURIComponent(
+    `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+  );
+
   submitBtn.disabled = true;
   submitIcon.innerHTML = '<span class="spinner"></span>';
-  submitText.textContent = 'sending...';
+  submitText.textContent = 'opening mail...';
 
-  await new Promise(r => setTimeout(r, 900));
+  window.location.href = `mailto:parshant786yadav@gmail.com?subject=${subject}&body=${body}`;
 
-  submitBtn.disabled = false;
-  submitIcon.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
-  submitText.textContent = 'send message';
-  form.reset();
-  showToast();
+  setTimeout(() => {
+    submitBtn.disabled = false;
+    submitIcon.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+    submitText.textContent = 'send message';
+    form.reset();
+    showToast();
+  }, 1200);
 });
