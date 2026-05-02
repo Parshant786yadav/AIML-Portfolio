@@ -1,16 +1,406 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Parshant Yadav — AI/ML Portfolio</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parshant Yadav — AI/ML Engineer</title>
+  <meta name="description" content="AI/ML Engineer — RAG pipelines, NLP models, full-stack AI products." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+  <div id="scroll-progress" aria-hidden="true"></div>
+
+  <header id="navbar">
+    <div class="nav-inner">
+      <button class="nav-logo" id="nav-logo">parshant<span class="primary-text">.</span></button>
+      <div class="nav-desktop">
+        <nav class="nav-links">
+          <button class="nav-link" data-href="#experience">experience</button>
+          <button class="nav-link" data-href="#projects">projects</button>
+          <button class="nav-link" data-href="#skills">skills</button>
+          <button class="nav-link" data-href="#contact">contact</button>
+        </nav>
+        <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+          <span id="theme-icon-desktop"></span>
+        </button>
+      </div>
+      <div class="nav-mobile-actions">
+        <button class="theme-btn" id="theme-toggle-mobile" aria-label="Toggle theme">
+          <span id="theme-icon-mobile"></span>
+        </button>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+          <svg id="icon-menu" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          <svg id="icon-close" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="mobile-nav" id="mobile-nav">
+      <div class="mobile-nav-inner">
+        <button class="nav-link" data-href="#experience">experience</button>
+        <button class="nav-link" data-href="#projects">projects</button>
+        <button class="nav-link" data-href="#skills">skills</button>
+        <button class="nav-link" data-href="#contact">contact</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrap">
+
+    <!-- Profile -->
+    <section class="profile-section">
+      <div class="profile-top">
+        <div class="avatar-wrap">
+          <div class="avatar">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+              <rect width="64" height="64" fill="hsl(0 0% 8%)" />
+              <circle cx="32" cy="24" r="12" fill="hsl(0 0% 20%)" />
+              <path d="M8 64 Q8 44 32 44 Q56 44 56 64" fill="hsl(0 0% 16%)" />
+              <circle cx="32" cy="24" r="12" fill="none" stroke="hsl(142 71% 45% / 0.3)" stroke-width="1" />
+            </svg>
+          </div>
+          <span class="online-dot" title="Open to opportunities"></span>
+        </div>
+        <div class="profile-info">
+          <h1 class="profile-name">Parshant Yadav</h1>
+          <p class="profile-title">AI/ML Engineer</p>
+          <div class="profile-meta">
+            <span class="meta-pin">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              Gurgaon, IN
+            </span>
+            <span class="live-time mono" id="live-time"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bio">
+        <p>I'm <strong>Parshant</strong>, an <span class="primary-text fw-500">AI/ML engineer</span> and B.Tech CSE (AI &amp; ML) student at MDU University, graduating in 2026. I build intelligent systems — from <strong>RAG pipelines</strong> and <strong>NLP models</strong> to full-stack AI products that solve real problems.</p>
+        <p>Currently interning as a <strong>Software QA Engineer at NxCar</strong>, previously an <strong>AI Intern at IBM</strong> where I worked on cloud-based AI solutions. I've solved <span class="primary-text mono fw-500">200+</span> DSA problems on LeetCode and maintain an <span class="primary-text mono fw-500">8+ CGPA</span>.</p>
+      </div>
+
+      <div class="social-links">
+        <a href="https://github.com/parshant786yadav" target="_blank" rel="noopener noreferrer" class="social-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+          GitHub
+        </a>
+        <a href="https://www.linkedin.com/in/parshant786" target="_blank" rel="noopener noreferrer" class="social-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn
+        </a>
+        <a href="http://wa.me/+918826448907" target="_blank" rel="noopener noreferrer" class="social-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+          WhatsApp
+        </a>
+        <a href="mailto:Parshant786yadav@gmail.com" class="social-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          Email
+        </a>
+        <a href="https://leetcode.com/parshant786yadav" target="_blank" rel="noopener noreferrer" class="social-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          LeetCode
+        </a>
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section id="experience" class="section">
+      <h2 class="section-title">work experience.</h2>
+      <div class="exp-list">
+
+        <div class="exp-item">
+          <div class="exp-letter" style="background:hsl(142 71% 45% / 0.07);color:hsl(142 71% 45%);border:1px solid hsl(142 71% 45% / 0.15)">N</div>
+          <div class="exp-body">
+            <div class="exp-header">
+              <div>
+                <h3 class="exp-role">Software QA Engineer Intern</h3>
+                <a href="#" class="exp-company">@ NxCar</a>
+              </div>
+              <div class="exp-right">
+                <span class="exp-period mono">Aug 2025 – Present</span>
+                <span class="exp-loc">Gurgaon (On-site)</span>
+              </div>
+            </div>
+            <p class="exp-desc">Optimized backend logic and debugged performance bottlenecks in collaboration with developers. Worked across the full backend stack ensuring API reliability and data integrity.</p>
+            <div class="tags"><span class="tag">Python</span><span class="tag">Backend</span><span class="tag">APIs</span><span class="tag">MySQL</span><span class="tag">QA</span></div>
+          </div>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-letter" style="background:hsl(220 80% 60% / 0.07);color:hsl(220 80% 60%);border:1px solid hsl(220 80% 60% / 0.15)">I</div>
+          <div class="exp-body">
+            <div class="exp-header">
+              <div>
+                <h3 class="exp-role">Artificial Intelligence Intern</h3>
+                <a href="https://www.ibm.com" target="_blank" rel="noopener noreferrer" class="exp-company">@ IBM <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+              </div>
+              <div class="exp-right">
+                <span class="exp-period mono">July 2025 – Aug 2025</span>
+                <span class="exp-loc">Remote</span>
+              </div>
+            </div>
+            <p class="exp-desc">Built AI-based solutions using Python and IBM Cloud tools. Worked on NLP pipelines to automate business workflows and improve decision-making systems.</p>
+            <div class="tags"><span class="tag">Python</span><span class="tag">NLP</span><span class="tag">IBM Cloud</span><span class="tag">AI/ML</span><span class="tag">Watson</span></div>
+          </div>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-letter" style="background:hsl(40 80% 55% / 0.07);color:hsl(40 80% 55%);border:1px solid hsl(40 80% 55% / 0.15)">F</div>
+          <div class="exp-body">
+            <div class="exp-header">
+              <div>
+                <h3 class="exp-role">Freelance Web Developer</h3>
+                <a href="#" class="exp-company">@ Self-employed</a>
+              </div>
+              <div class="exp-right">
+                <span class="exp-period mono">Aug 2024 – July 2025</span>
+                <span class="exp-loc">Remote</span>
+              </div>
+            </div>
+            <p class="exp-desc">Delivered production-ready websites for multiple clients. Integrated AI-powered features including chatbots and smart form handling into client projects.</p>
+            <div class="tags"><span class="tag">React</span><span class="tag">Node.js</span><span class="tag">Firebase</span><span class="tag">APIs</span><span class="tag">Tailwind CSS</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Projects -->
+    <section id="projects" class="section">
+      <h2 class="section-title">projects.</h2>
+      <div class="projects-list">
+
+        <div class="project-card">
+          <div class="project-header">
+            <div>
+              <div class="project-title-row">
+                <h3 class="project-name">DocuMind</h3>
+                <span class="project-badge" style="background:hsl(142 71% 45% / 0.07);color:hsl(142 71% 45%);border:1px solid hsl(142 71% 45% / 0.15)">RAG Pipeline</span>
+              </div>
+              <p class="project-subtitle mono">RAG-based PDF Intelligence Engine</p>
+            </div>
+            <div class="project-links">
+              <a href="https://github.com/parshant786yadav" target="_blank" rel="noopener noreferrer" class="icon-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+              </a>
+            </div>
+          </div>
+          <p class="project-desc">Production-grade document intelligence system built on Retrieval-Augmented Generation. Upload any PDF, and DocuMind embeds it into a vector store, retrieves semantically relevant chunks, and feeds them into an LLM to generate precise, context-aware answers. Designed for accuracy — no hallucinations, only grounded responses.</p>
+          <div class="project-footer">
+            <div class="tags"><span class="tag">FastAPI</span><span class="tag">Python</span><span class="tag">RAG</span><span class="tag">LangChain</span><span class="tag">Vector DB</span><span class="tag">LLM</span><span class="tag">NLP</span></div>
+            <span class="project-metric mono"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="color:hsl(142 71% 45%)"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg> Context-aware Q&amp;A on any PDF</span>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="project-header">
+            <div>
+              <div class="project-title-row">
+                <h3 class="project-name">HireWise</h3>
+                <span class="project-badge" style="background:hsl(220 80% 60% / 0.07);color:hsl(220 80% 60%);border:1px solid hsl(220 80% 60% / 0.15)">NLP Matching</span>
+              </div>
+              <p class="project-subtitle mono">NLP Resume Screening Engine</p>
+            </div>
+            <div class="project-links">
+              <a href="https://github.com/parshant786yadav/Resume-Screening-App" target="_blank" rel="noopener noreferrer" class="icon-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+              </a>
+            </div>
+          </div>
+          <p class="project-desc">Automated recruitment intelligence system that uses NLP and semantic similarity to match candidate resumes against job descriptions. Extracts entities (skills, experience, education), scores relevance, and ranks candidates — eliminating manual screening bias and reducing hiring time.</p>
+          <div class="project-footer">
+            <div class="tags"><span class="tag">Python</span><span class="tag">NLP</span><span class="tag">spaCy</span><span class="tag">Scikit-learn</span><span class="tag">TF-IDF</span><span class="tag">ML</span></div>
+            <span class="project-metric mono"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="color:hsl(220 80% 60%)"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg> Semantic resume-to-JD matching</span>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="project-header">
+            <div>
+              <div class="project-title-row">
+                <h3 class="project-name">AI Portfolio Chatbot</h3>
+                <span class="project-badge" style="background:hsl(40 80% 55% / 0.07);color:hsl(40 80% 55%);border:1px solid hsl(40 80% 55% / 0.15)">LLM-powered</span>
+              </div>
+              <p class="project-subtitle mono">Conversational AI Assistant</p>
+            </div>
+            <div class="project-links">
+              <a href="https://parshantyadav.com" target="_blank" rel="noopener noreferrer" class="icon-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+              <a href="https://github.com/parshant786yadav" target="_blank" rel="noopener noreferrer" class="icon-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+              </a>
+            </div>
+          </div>
+          <p class="project-desc">Embedded LLM-powered chatbot trained on personal data — projects, skills, and experience. Visitors can ask natural language questions about Parshant's background and get instant, accurate answers. Built with a FastAPI backend and a streaming response interface.</p>
+          <div class="project-footer">
+            <div class="tags"><span class="tag">FastAPI</span><span class="tag">Python</span><span class="tag">LLM</span><span class="tag">Prompt Engineering</span><span class="tag">REST API</span></div>
+            <span class="project-metric mono"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="color:hsl(40 80% 55%)"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg> Personalized Q&amp;A chatbot</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section id="skills" class="section">
+      <h2 class="section-title">skills.</h2>
+      <div class="skills-list">
+        <div class="skill-row">
+          <span class="skill-label mono">AI / ML</span>
+          <div class="tags"><span class="tag tag-green">Python</span><span class="tag tag-green">Machine Learning</span><span class="tag tag-green">NLP</span><span class="tag tag-green">RAG</span><span class="tag tag-green">LangChain</span><span class="tag tag-green">FastAPI</span><span class="tag tag-green">IBM Watson</span><span class="tag tag-green">Prompt Engineering</span><span class="tag tag-green">Vector DBs</span></div>
+        </div>
+        <div class="skill-row">
+          <span class="skill-label mono">Frontend</span>
+          <div class="tags"><span class="tag">React</span><span class="tag">TypeScript</span><span class="tag">JavaScript</span><span class="tag">Tailwind CSS</span><span class="tag">HTML</span><span class="tag">CSS</span></div>
+        </div>
+        <div class="skill-row">
+          <span class="skill-label mono">Backend &amp; Data</span>
+          <div class="tags"><span class="tag">Node.js</span><span class="tag">Express</span><span class="tag">MySQL</span><span class="tag">Firebase</span><span class="tag">REST APIs</span></div>
+        </div>
+        <div class="skill-row">
+          <span class="skill-label mono">Tools</span>
+          <div class="tags"><span class="tag">Git</span><span class="tag">GitHub</span><span class="tag">VS Code</span><span class="tag">PyCharm</span><span class="tag">Linux</span><span class="tag">C++</span><span class="tag">Java</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Education -->
+    <section id="education" class="section">
+      <h2 class="section-title">education.</h2>
+      <div class="edu-list">
+        <div class="edu-item">
+          <div class="edu-left">
+            <h3 class="edu-degree">B.Tech — Computer Science &amp; Engineering (AI &amp; ML)</h3>
+            <p class="edu-school">MDU University</p>
+          </div>
+          <div class="edu-right">
+            <span class="edu-score mono primary-text">CGPA 8+</span>
+            <span class="edu-period mono">2022 – 2026</span>
+          </div>
+        </div>
+        <div class="edu-item">
+          <div class="edu-left">
+            <h3 class="edu-degree">Senior Secondary (XII)</h3>
+            <p class="edu-school">RPS School</p>
+          </div>
+          <div class="edu-right">
+            <span class="edu-score mono primary-text">83%</span>
+            <span class="edu-period mono">2020 – 2022</span>
+          </div>
+        </div>
+        <div class="edu-item">
+          <div class="edu-left">
+            <h3 class="edu-degree">Secondary (X)</h3>
+            <p class="edu-school">Suraj School</p>
+          </div>
+          <div class="edu-right">
+            <span class="edu-score mono primary-text">76.6%</span>
+            <span class="edu-period mono">2018 – 2020</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Certificates -->
+    <section id="certificates" class="section">
+      <h2 class="section-title">certificates.</h2>
+      <div class="cert-grid">
+        <a href="https://coursera.org/verify/4LCPNYZJLWYG" target="_blank" rel="noopener noreferrer" class="cert-card">
+          <div class="cert-top"><div><h3 class="cert-title">AI for Everyone</h3><p class="cert-issuer mono">Coursera</p></div><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cert-arrow"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></div>
+          <span class="tag tag-green" style="margin-top:8px">verified</span>
+        </a>
+        <a href="https://coursera.org/verify/AKRB3YPHL2PZ" target="_blank" rel="noopener noreferrer" class="cert-card">
+          <div class="cert-top"><div><h3 class="cert-title">Web Development</h3><p class="cert-issuer mono">Coursera</p></div><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cert-arrow"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></div>
+          <span class="tag tag-green" style="margin-top:8px">verified</span>
+        </a>
+        <a href="#" class="cert-card">
+          <div class="cert-top"><div><h3 class="cert-title">Technical Fundamentals</h3><p class="cert-issuer mono">IBM</p></div><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cert-arrow"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></div>
+          <span class="tag tag-green" style="margin-top:8px">verified</span>
+        </a>
+        <a href="#" class="cert-card">
+          <div class="cert-top"><div><h3 class="cert-title">Python (5 Star)</h3><p class="cert-issuer mono">HackerRank</p></div><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cert-arrow"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></div>
+          <span class="tag tag-green" style="margin-top:8px">verified</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- LeetCode -->
+    <section id="leetcode" class="section">
+      <h2 class="section-title">dsa / leetcode.</h2>
+      <div class="lc-card">
+        <div class="lc-header">
+          <div>
+            <span class="lc-username mono">parshant786yadav</span>
+            <p class="lc-sub">Consistent problem solver — algorithms &amp; data structures</p>
+          </div>
+          <a href="https://leetcode.com/parshant786yadav" target="_blank" rel="noopener noreferrer" class="lc-profile mono">
+            Profile <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+        <div class="lc-stats">
+          <div class="lc-stat"><span class="lc-val mono" style="color:hsl(142 71% 45%)">200+</span><span class="lc-label">Total Solved</span></div>
+          <div class="lc-stat"><span class="lc-val mono" style="color:hsl(142 71% 55%)">90+</span><span class="lc-label">Easy</span></div>
+          <div class="lc-stat"><span class="lc-val mono" style="color:hsl(38 90% 55%)">90+</span><span class="lc-label">Medium</span></div>
+          <div class="lc-stat"><span class="lc-val mono" style="color:hsl(0 75% 55%)">20+</span><span class="lc-label">Hard</span></div>
+        </div>
+        <div class="lc-bars">
+          <div class="lc-bar-row"><span class="lc-bar-label mono">Easy</span><div class="lc-bar-track"><div class="lc-bar-fill" data-pct="68" style="background:hsl(142 71% 55%)"></div></div></div>
+          <div class="lc-bar-row"><span class="lc-bar-label mono">Medium</span><div class="lc-bar-track"><div class="lc-bar-fill" data-pct="48" style="background:hsl(38 90% 55%)"></div></div></div>
+          <div class="lc-bar-row"><span class="lc-bar-label mono">Hard</span><div class="lc-bar-track"><div class="lc-bar-fill" data-pct="22" style="background:hsl(0 75% 55%)"></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="section">
+      <h2 class="section-title">contact.</h2>
+      <p class="contact-intro">
+        Have a project, opportunity, or just want to talk AI? I'm open to conversations.
+        <a href="mailto:Parshant786yadav@gmail.com" class="primary-link mono">Parshant786yadav@gmail.com</a>
+      </p>
+      <form id="contact-form" class="contact-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label mono">name</label>
+            <input type="text" required placeholder="Your name" class="form-input mono" />
+          </div>
+          <div class="form-group">
+            <label class="form-label mono">email</label>
+            <input type="email" required placeholder="your@email.com" class="form-input mono" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label mono">message</label>
+          <textarea required rows="4" placeholder="What's on your mind..." class="form-input form-textarea mono"></textarea>
+        </div>
+        <div class="form-actions">
+          <span class="form-email-hint mono">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            Parshant786yadav@gmail.com
+          </span>
+          <button type="submit" class="submit-btn mono" id="submit-btn">
+            <span id="submit-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+            <span id="submit-text">send message</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p class="mono muted-text">© 2026 Parshant Yadav · Built with purpose</p>
+  </footer>
+
+  <div class="toast" id="toast">
+    <strong>Message sent.</strong> Parshant will get back to you within 24 hours.
+  </div>
+
+  <script src="/script.js"></script>
+</body>
 </html>
