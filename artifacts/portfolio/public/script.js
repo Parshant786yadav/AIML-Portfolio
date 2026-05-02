@@ -233,7 +233,7 @@ function removeTyping() {
   if (t) t.remove();
 }
 
-let conversationId = '';
+const chatHistory = [];
 
 async function sendChatMessage() {
   const text = chatInput.value.trim();
@@ -249,19 +249,18 @@ async function sendChatMessage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        inputs: {},
-        query: text,
-        response_mode: 'blocking',
-        conversation_id: conversationId,
-        user: 'portfolio-visitor',
+        message: text,
+        history: chatHistory.slice(),
       }),
     });
 
     if (!res.ok) throw new Error(`API error ${res.status}`);
     const data = await res.json();
-    if (data.conversation_id) conversationId = data.conversation_id;
+    const reply = data.reply || data.answer || 'Sorry, I could not get a response.';
+    chatHistory.push({ role: 'user', content: text });
+    chatHistory.push({ role: 'assistant', content: reply });
     removeTyping();
-    appendMsg(data.answer || 'Sorry, I could not get a response.', 'bot');
+    appendMsg(reply, 'bot');
   } catch (err) {
     removeTyping();
     appendMsg("Sorry, I'm having trouble connecting right now. Please try the contact form below!", 'bot');

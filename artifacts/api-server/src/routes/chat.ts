@@ -27,7 +27,7 @@ router.post("/chat", async (req, res) => {
     try {
       data = JSON.parse(text);
     } catch {
-      data = { answer: text };
+      data = { reply: text };
     }
 
     res.json(data);
