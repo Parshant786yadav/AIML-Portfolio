@@ -1,173 +1,124 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Github, ExternalLink, Star } from "lucide-react";
+import { Github, ExternalLink, ArrowUpRight } from "lucide-react";
 
 const PROJECTS = [
   {
-    title: "DocuMind — AI Document Chatbot",
-    desc: "Advanced RAG-based AI Document Chatbot and PDF Assistant. Upload any PDF and have an intelligent conversation with it powered by large language models.",
-    tags: ["FastAPI", "Python", "RAG", "LangChain", "AI"],
+    title: "DocuMind",
+    subtitle: "RAG-based PDF Intelligence Engine",
+    desc: "Production-grade document intelligence system built on Retrieval-Augmented Generation. Upload any PDF, and DocuMind embeds it into a vector store, retrieves semantically relevant chunks, and feeds them into an LLM to generate precise, context-aware answers. Designed for accuracy — no hallucinations, only grounded responses.",
+    tags: ["FastAPI", "Python", "RAG", "LangChain", "Vector DB", "LLM", "NLP"],
     github: "https://github.com/parshant786yadav",
-    stars: 4,
-    color: "hsl(188 86% 53%)",
-    gradient: "linear-gradient(135deg, hsl(188 86% 53% / 0.15), hsl(271 91% 65% / 0.08))",
+    live: null,
+    highlight: "RAG Pipeline",
+    highlightColor: "hsl(142 71% 45%)",
+    metric: "Context-aware Q&A on any PDF",
   },
   {
-    title: "HireWise — Resume Screener",
-    desc: "NLP-powered resume screening application that intelligently matches candidates to job descriptions, automating the initial screening process.",
-    tags: ["NLP", "Python", "Machine Learning", "Text Analysis"],
+    title: "HireWise",
+    subtitle: "NLP Resume Screening Engine",
+    desc: "Automated recruitment intelligence system that uses NLP and semantic similarity to match candidate resumes against job descriptions. Extracts entities (skills, experience, education), scores relevance, and ranks candidates — eliminating manual screening bias and reducing hiring time.",
+    tags: ["Python", "NLP", "spaCy", "Scikit-learn", "TF-IDF", "ML"],
     github: "https://github.com/parshant786yadav/Resume-Screening-App",
-    stars: 2,
-    color: "hsl(271 91% 65%)",
-    gradient: "linear-gradient(135deg, hsl(271 91% 65% / 0.15), hsl(316 73% 52% / 0.08))",
+    live: null,
+    highlight: "NLP Matching",
+    highlightColor: "hsl(220 80% 60%)",
+    metric: "Semantic resume-to-JD matching",
   },
   {
-    title: "AI-Powered Tech Portfolio",
-    desc: "This portfolio itself — built with modern AI-assisted tooling featuring smooth animations, a neural network background, and a built-in AI chatbot for visitors.",
-    tags: ["AI", "React", "Full Stack", "Framer Motion"],
+    title: "AI Portfolio Chatbot",
+    subtitle: "Conversational AI Assistant",
+    desc: "Embedded LLM-powered chatbot trained on personal data — projects, skills, and experience. Visitors can ask natural language questions about Parshant's background and get instant, accurate answers. Built with a FastAPI backend and a streaming response interface.",
+    tags: ["FastAPI", "Python", "LLM", "Prompt Engineering", "REST API"],
     github: "https://github.com/parshant786yadav",
-    stars: 4,
-    color: "hsl(316 73% 52%)",
-    gradient: "linear-gradient(135deg, hsl(316 73% 52% / 0.15), hsl(188 86% 53% / 0.08))",
+    live: "https://parshantyadav.com",
+    highlight: "LLM-powered",
+    highlightColor: "hsl(40 80% 55%)",
+    metric: "Personalized Q&A chatbot",
   },
 ];
 
-function TiltCard({ project, index, inView }: { project: typeof PROJECTS[0]; index: number; inView: boolean }) {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = cardRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 16;
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * -16;
-    setTilt({ x, y });
-  };
-
-  return (
-    <motion.div
-      ref={cardRef}
-      className="relative group"
-      initial={{ opacity: 0, y: 40 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
-      onMouseMove={onMouseMove}
-      onMouseLeave={() => setTilt({ x: 0, y: 0 })}
-      style={{
-        transform: `perspective(800px) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)`,
-        transition: "transform 0.15s ease",
-        transformStyle: "preserve-3d",
-      }}
-    >
-      <div
-        className="relative rounded-2xl overflow-hidden border border-border h-full flex flex-col"
-        style={{ background: project.gradient }}
-      >
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
-          style={{ boxShadow: `inset 0 0 30px ${project.color}10`, border: `1px solid ${project.color}40` }}
-        />
-
-        <div className="p-6 flex flex-col h-full relative z-10">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                {project.title}
-              </h3>
-              <div className="flex items-center gap-1 mt-1">
-                {Array.from({ length: project.stars }).map((_, i) => (
-                  <Star key={i} size={12} fill={project.color} style={{ color: project.color }} />
-                ))}
-                {Array.from({ length: 4 - project.stars }).map((_, i) => (
-                  <Star key={i + project.stars} size={12} className="text-muted" />
-                ))}
-              </div>
-            </div>
-            <motion.a
-              href={project.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-border/80 transition-colors flex-shrink-0"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              data-testid={`link-project-github-${index}`}
-            >
-              <Github size={16} />
-            </motion.a>
-          </div>
-
-          <p className="text-muted-foreground text-sm leading-relaxed mb-6 flex-1">{project.desc}</p>
-
-          <div className="flex flex-wrap gap-2">
-            {project.tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-xs px-2.5 py-1 rounded-lg font-mono"
-                style={{
-                  background: `${project.color}12`,
-                  border: `1px solid ${project.color}25`,
-                  color: project.color,
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function Projects() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const inView = useInView(ref, { once: true, margin: "-60px" });
 
   return (
-    <section id="projects" ref={ref} className="py-24 px-6 relative overflow-hidden">
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 50% 50%, hsl(188 86% 53% / 0.03) 0%, transparent 70%)",
-        }}
-      />
-      <div className="max-w-6xl mx-auto relative z-10">
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-        >
-          <span className="text-primary font-mono text-sm tracking-widest uppercase">What I've Built</span>
-          <h2 className="text-3xl md:text-4xl font-bold mt-2">Projects</h2>
-        </motion.div>
+    <section id="projects" ref={ref} className="py-8 section-divider">
+      <motion.h2
+        className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-6"
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ duration: 0.4 }}
+      >
+        projects.
+      </motion.h2>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {PROJECTS.map((project, i) => (
-            <TiltCard key={project.title} project={project} index={i} inView={inView} />
-          ))}
-        </div>
-
-        <motion.div
-          className="text-center mt-10"
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.6 }}
-        >
-          <motion.a
-            href="https://github.com/parshant786yadav"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors font-mono"
-            whileHover={{ x: 4 }}
-            data-testid="link-view-all-projects"
+      <div className="space-y-4">
+        {PROJECTS.map((project, i) => (
+          <motion.div
+            key={project.title}
+            initial={{ opacity: 0, y: 12 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.4, delay: i * 0.1 }}
+            className="rounded-lg border border-border p-5 hover:bg-card transition-all duration-200 group"
+            data-testid={`project-${i}`}
           >
-            <Github size={16} />
-            View all projects on GitHub
-            <ExternalLink size={12} />
-          </motion.a>
-        </motion.div>
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-sm font-semibold text-foreground">{project.title}</h3>
+                  <span
+                    className="text-xs font-mono px-1.5 py-0.5 rounded"
+                    style={{
+                      background: `${project.highlightColor}12`,
+                      color: project.highlightColor,
+                      border: `1px solid ${project.highlightColor}25`,
+                    }}
+                  >
+                    {project.highlight}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 font-mono">{project.subtitle}</p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {project.live && (
+                  <a
+                    href={project.live}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid={`project-live-${i}`}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <ExternalLink size={14} />
+                  </a>
+                )}
+                <a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid={`project-github-${i}`}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Github size={14} />
+                </a>
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground leading-relaxed mb-4">{project.desc}</p>
+
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex flex-wrap gap-1.5">
+                {project.tags.map((tag) => (
+                  <span key={tag} className="tag">{tag}</span>
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground/60 font-mono flex-shrink-0 flex items-center gap-1">
+                <ArrowUpRight size={10} style={{ color: project.highlightColor }} />
+                {project.metric}
+              </span>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </section>
   );
