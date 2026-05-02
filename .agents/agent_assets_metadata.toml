@@ -6,3 +6,9 @@ id = "aHBfanYPV16d6s1GTrcia"
 uri = "file://portfolio-html.zip"
 type = "unspecified"
 title = "portfolio-html.zip — Exact HTML/CSS/JS conversion"
+
+[[outputs]]
+id = "6rwuINot7OcsL8JjGcH-N"
+uri = "file://parshant-yadav-portfolio.pdf"
+type = "pdf"
+title = "Parshant Yadav — Portfolio & AI Training Guide"
