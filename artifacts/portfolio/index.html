@@ -367,16 +367,16 @@
         <div class="form-row">
           <div class="form-group">
             <label class="form-label mono">name</label>
-            <input type="text" required placeholder="Your name" class="form-input mono" />
+            <input type="text" name="from_name" required placeholder="Your name" class="form-input mono" />
           </div>
           <div class="form-group">
             <label class="form-label mono">email</label>
-            <input type="email" required placeholder="your@email.com" class="form-input mono" />
+            <input type="email" name="reply_to" required placeholder="your@email.com" class="form-input mono" />
           </div>
         </div>
         <div class="form-group">
           <label class="form-label mono">message</label>
-          <textarea required rows="4" placeholder="What's on your mind..." class="form-input form-textarea mono"></textarea>
+          <textarea name="message" required rows="4" placeholder="What's on your mind..." class="form-input form-textarea mono"></textarea>
         </div>
         <div class="form-actions">
           <span class="form-email-hint mono">
@@ -398,9 +398,10 @@
   </footer>
 
   <div class="toast" id="toast">
-    <strong>Email client opened!</strong> Just hit send and Parshant will receive your message.
+    <strong>Message sent!</strong> Parshant will get back to you soon.
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="/script.js"></script>
 </body>
 </html>

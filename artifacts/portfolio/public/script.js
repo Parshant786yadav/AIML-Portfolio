@@ -129,6 +129,13 @@ document.querySelectorAll('.exp-item, .project-card, .skill-row, .edu-item, .cer
 
 document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
 
+/* ─── EmailJS config ─── */
+const EMAILJS_SERVICE_ID  = 'service_nqfe3w8';
+const EMAILJS_TEMPLATE_ID = 'uLILW4rO_SsOeANxb';
+const EMAILJS_PUBLIC_KEY  = 'QH14qSR4K8hFuuMu8RRLX';
+
+emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
 /* ─── Contact form ─── */
 const form = document.getElementById('contact-form');
 const submitBtn = document.getElementById('submit-btn');
@@ -136,36 +143,36 @@ const submitIcon = document.getElementById('submit-icon');
 const submitText = document.getElementById('submit-text');
 const toast = document.getElementById('toast');
 
-function showToast() {
+const sendIcon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+
+function showToast(success) {
+  toast.innerHTML = success
+    ? '<strong>Message sent!</strong> Parshant will get back to you soon.'
+    : '<strong>Something went wrong.</strong> Please email directly at Parshant786yadav@gmail.com';
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 4000);
+  setTimeout(() => toast.classList.remove('show'), 5000);
+}
+
+function resetBtn() {
+  submitBtn.disabled = false;
+  submitIcon.innerHTML = sendIcon;
+  submitText.textContent = 'send message';
 }
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
-
-  const inputs = form.querySelectorAll('input, textarea');
-  const name    = inputs[0].value.trim();
-  const email   = inputs[1].value.trim();
-  const message = inputs[2].value.trim();
-
-  const subject = encodeURIComponent(`Portfolio Contact from ${name}`);
-  const body    = encodeURIComponent(
-    `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
-  );
-
   submitBtn.disabled = true;
   submitIcon.innerHTML = '<span class="spinner"></span>';
-  submitText.textContent = 'opening mail...';
+  submitText.textContent = 'sending...';
 
-  // open the visitor's email client pre-filled and addressed to Parshant
-  window.location.href = `mailto:parshant786yadav@gmail.com?subject=${subject}&body=${body}`;
-
-  setTimeout(() => {
-    submitBtn.disabled = false;
-    submitIcon.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
-    submitText.textContent = 'send message';
-    form.reset();
-    showToast();
-  }, 1200);
+  emailjs.sendForm(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, form)
+    .then(() => {
+      form.reset();
+      resetBtn();
+      showToast(true);
+    })
+    .catch(() => {
+      resetBtn();
+      showToast(false);
+    });
 });
