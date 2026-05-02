@@ -233,25 +233,48 @@ function removeTyping() {
   if (t) t.remove();
 }
 
-const botReplies = [
-  "I'm still being connected to Parshant's knowledge base — full AI replies are coming soon!",
-  "Great question! My AI brain is almost ready. Meanwhile, use the contact form to reach Parshant directly.",
-  "I'll be able to answer that properly once the API is connected. Parshant is working on it!",
-  "Coming soon — Parshant is integrating an AI backend so I can give you real answers.",
-];
-let replyIdx = 0;
+const DIFY_API_KEY = 'dm_0cfb3ba8c1663aa8_33492fce67bf6134d89fbc273b9c2184';
+const DIFY_API_URL = 'https://api.dify.ai/v1/chat-messages';
+let conversationId = '';
 
-function sendChatMessage() {
+async function sendChatMessage() {
   const text = chatInput.value.trim();
   if (!text) return;
   chatInput.value = '';
+  chatSend.disabled = true;
+  chatInput.disabled = true;
   appendMsg(text, 'user');
   showTyping();
-  setTimeout(() => {
+
+  try {
+    const res = await fetch(DIFY_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${DIFY_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: {},
+        query: text,
+        response_mode: 'blocking',
+        conversation_id: conversationId,
+        user: 'portfolio-visitor',
+      }),
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    if (data.conversation_id) conversationId = data.conversation_id;
     removeTyping();
-    appendMsg(botReplies[replyIdx % botReplies.length], 'bot');
-    replyIdx++;
-  }, 1000 + Math.random() * 600);
+    appendMsg(data.answer || 'Sorry, I could not get a response.', 'bot');
+  } catch (err) {
+    removeTyping();
+    appendMsg("Sorry, I'm having trouble connecting right now. Please try the contact form below!", 'bot');
+  } finally {
+    chatSend.disabled = false;
+    chatInput.disabled = false;
+    chatInput.focus();
+  }
 }
 
 chatSend.addEventListener('click', sendChatMessage);
