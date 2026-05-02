@@ -234,7 +234,7 @@ function removeTyping() {
 }
 
 const DIFY_API_KEY = 'dm_0cfb3ba8c1663aa8_33492fce67bf6134d89fbc273b9c2184';
-const DIFY_API_URL = 'https://hirewise.parshantyadav.com/api/v1/chat';
+const DIFY_API_URL = 'https://api.dify.ai/v1/chat-messages';
 let conversationId = '';
 
 async function sendChatMessage() {
