@@ -176,3 +176,83 @@ form.addEventListener('submit', (e) => {
       showToast(false);
     });
 });
+
+/* ─── Chatbot ─── */
+const chatFab       = document.getElementById('chat-fab');
+const chatPanel     = document.getElementById('chat-panel');
+const chatClose     = document.getElementById('chat-close');
+const chatInput     = document.getElementById('chat-input');
+const chatSend      = document.getElementById('chat-send');
+const chatMessages  = document.getElementById('chat-messages');
+const chatFabOpen   = document.getElementById('chat-fab-open');
+const chatFabClose  = document.getElementById('chat-fab-close');
+const chatContactLink = document.getElementById('chat-contact-link');
+
+let chatOpen = false;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  chatPanel.classList.toggle('open', chatOpen);
+  chatPanel.setAttribute('aria-hidden', String(!chatOpen));
+  chatFabOpen.style.display  = chatOpen ? 'none' : '';
+  chatFabClose.style.display = chatOpen ? '' : 'none';
+  if (chatOpen) setTimeout(() => chatInput.focus(), 280);
+}
+
+chatFab.addEventListener('click', toggleChat);
+chatClose.addEventListener('click', toggleChat);
+
+chatContactLink.addEventListener('click', () => {
+  toggleChat();
+  document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+});
+
+function appendMsg(html, role) {
+  const msg    = document.createElement('div');
+  msg.className = `chat-msg ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+  bubble.innerHTML = html;
+  msg.appendChild(bubble);
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return msg;
+}
+
+function showTyping() {
+  const msg = document.createElement('div');
+  msg.className = 'chat-msg bot';
+  msg.id = 'chat-typing-row';
+  msg.innerHTML = '<div class="chat-bubble"><div class="chat-typing"><span></span><span></span><span></span></div></div>';
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('chat-typing-row');
+  if (t) t.remove();
+}
+
+const botReplies = [
+  "I'm still being connected to Parshant's knowledge base — full AI replies are coming soon!",
+  "Great question! My AI brain is almost ready. Meanwhile, use the contact form to reach Parshant directly.",
+  "I'll be able to answer that properly once the API is connected. Parshant is working on it!",
+  "Coming soon — Parshant is integrating an AI backend so I can give you real answers.",
+];
+let replyIdx = 0;
+
+function sendChatMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  chatInput.value = '';
+  appendMsg(text, 'user');
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    appendMsg(botReplies[replyIdx % botReplies.length], 'bot');
+    replyIdx++;
+  }, 1000 + Math.random() * 600);
+}
+
+chatSend.addEventListener('click', sendChatMessage);
+chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
