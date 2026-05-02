@@ -233,8 +233,6 @@ function removeTyping() {
   if (t) t.remove();
 }
 
-const DIFY_API_KEY = 'dm_0cfb3ba8c1663aa8_33492fce67bf6134d89fbc273b9c2184';
-const DIFY_API_URL = 'https://hirewise.parshantyadav.com/api/v1/chat';
 let conversationId = '';
 
 async function sendChatMessage() {
@@ -247,12 +245,9 @@ async function sendChatMessage() {
   showTyping();
 
   try {
-    const res = await fetch(DIFY_API_URL, {
+    const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${DIFY_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         inputs: {},
         query: text,
