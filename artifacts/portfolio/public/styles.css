@@ -136,6 +136,17 @@ body {
   text-decoration: none;
 }
 .nav-link:hover { color: var(--fg); }
+.resume-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 6px;
+  background: var(--primary); color: hsl(0 0% 4%);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+  text-decoration: none; border: none; cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  white-space: nowrap;
+}
+.resume-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.resume-btn-mobile { width: 100%; justify-content: center; margin-top: 4px; }
 .theme-btn {
   width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
@@ -225,6 +236,11 @@ body {
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 .social-btn:hover { color: var(--fg); }
+.social-btn-resume {
+  background: var(--primary); color: hsl(0 0% 4%) !important;
+  border-color: var(--primary); font-weight: 600;
+}
+.social-btn-resume:hover { opacity: 0.85; color: hsl(0 0% 4%) !important; }
 
 /* ── Experience ── */
 .exp-list { display: flex; flex-direction: column; gap: 4px; }
