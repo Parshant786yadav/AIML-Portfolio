@@ -342,3 +342,359 @@ button.create-fab {
 .auth-error {
   color: hsl(0 70% 62%);
 }
+
+/* ═══════════════════════════════════════════
+   CHOOSE PATH
+═══════════════════════════════════════════ */
+.choosepath-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 40px 28px;
+  text-align: center;
+}
+.choosepath-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: hsl(0 0% 92%);
+  margin-bottom: 8px;
+}
+.choosepath-sub {
+  font-size: 14px;
+  color: hsl(0 0% 45%);
+  margin-bottom: 36px;
+}
+.choosepath-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  max-width: 560px;
+}
+.choosepath-card {
+  position: relative;
+  background: hsl(0 0% 7%);
+  border: 1px solid hsl(0 0% 14%);
+  border-radius: 16px;
+  padding: 28px 24px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .2s, transform .15s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.choosepath-card:hover {
+  border-color: hsl(142 71% 45%);
+  transform: translateY(-2px);
+}
+.cp-icon-wrap {
+  font-size: 28px;
+  margin-bottom: 4px;
+  color: hsl(142 71% 45%);
+}
+.choosepath-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: hsl(0 0% 92%);
+}
+.choosepath-card p {
+  font-size: 13px;
+  color: hsl(0 0% 50%);
+  line-height: 1.6;
+}
+.cp-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  background: rgba(74,222,128,.12);
+  color: hsl(142 71% 45%);
+  border: 1px solid rgba(74,222,128,.2);
+  border-radius: 20px;
+  width: fit-content;
+  margin-top: 4px;
+}
+@media (max-width: 500px) {
+  .choosepath-cards { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════
+   MANUAL EDITOR
+═══════════════════════════════════════════ */
+.manual-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(0 0% 18%) transparent;
+}
+.manual-editor::-webkit-scrollbar { width: 5px; }
+.manual-editor::-webkit-scrollbar-thumb { background: hsl(0 0% 18%); border-radius: 3px; }
+
+.me-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid hsl(0 0% 12%);
+  position: sticky;
+  top: 0;
+  background: hsl(0 0% 5%);
+  z-index: 10;
+  flex-shrink: 0;
+}
+.me-heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: hsl(0 0% 92%);
+  margin-bottom: 2px;
+}
+.me-subheading {
+  font-size: 12px;
+  color: hsl(0 0% 42%);
+}
+.me-gen-top { white-space: nowrap; flex-shrink: 0; }
+
+.me-section {
+  padding: 24px 28px;
+  border-bottom: 1px solid hsl(0 0% 10%);
+}
+.me-section-title {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: hsl(0 0% 42%);
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+.me-section-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.me-section-hdr .me-section-title { margin-bottom: 0; }
+
+.me-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+@media (max-width: 600px) { .me-field-row { grid-template-columns: 1fr; } }
+
+.me-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.me-field:last-child { margin-bottom: 0; }
+.me-field label {
+  font-size: 11px;
+  color: hsl(0 0% 48%);
+  font-weight: 500;
+}
+.me-required { color: hsl(0 70% 62%); }
+.me-field input,
+.me-field textarea {
+  background: hsl(0 0% 8%) !important;
+  border: 1px solid hsl(0 0% 14%);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: hsl(0 0% 88%) !important;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color .15s;
+  resize: vertical;
+}
+.me-field input::placeholder,
+.me-field textarea::placeholder { color: hsl(0 0% 32%); }
+.me-field input:focus,
+.me-field textarea:focus {
+  outline: none;
+  border-color: hsl(142 71% 45%);
+}
+
+/* Experience / Project cards */
+.me-item {
+  background: hsl(0 0% 7%);
+  border: 1px solid hsl(0 0% 14%);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.me-item-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.me-item-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(0 0% 60%);
+  font-family: 'JetBrains Mono', monospace;
+}
+.me-remove-btn {
+  font-size: 11px;
+  color: hsl(0 70% 62%);
+  background: transparent;
+  border: 1px solid hsl(0 70% 25%);
+  border-radius: 6px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: .15s;
+}
+.me-remove-btn:hover { background: hsl(0 70% 15%); }
+
+/* Add button */
+.me-add-btn {
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: hsl(142 71% 45%);
+  background: rgba(74,222,128,.07);
+  border: 1px solid rgba(74,222,128,.18);
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: .15s;
+  white-space: nowrap;
+}
+.me-add-btn:hover { background: rgba(74,222,128,.14); }
+
+/* Skills tags */
+.me-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-height: 20px;
+}
+.me-skill-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4px 10px 4px 12px;
+  background: hsl(0 0% 9%);
+  border: 1px solid hsl(0 0% 18%);
+  border-radius: 20px;
+  color: hsl(0 0% 80%);
+}
+.me-chip-remove {
+  background: transparent;
+  border: none;
+  color: hsl(0 0% 40%);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  transition: color .15s;
+}
+.me-chip-remove:hover { color: hsl(0 70% 62%); }
+.me-tag-input-row {
+  display: flex;
+  gap: 8px;
+}
+.me-tag-input-row input {
+  flex: 1;
+  background: hsl(0 0% 8%) !important;
+  border: 1px solid hsl(0 0% 14%);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: hsl(0 0% 88%) !important;
+  font-family: inherit;
+}
+.me-tag-input-row input::placeholder { color: hsl(0 0% 32%); }
+.me-tag-input-row input:focus { outline: none; border-color: hsl(142 71% 45%); }
+
+.me-footer {
+  padding: 24px 28px 32px;
+  display: flex;
+  justify-content: center;
+}
+.me-footer .wiz-btn-primary { min-width: 220px; }
+
+/* ═══════════════════════════════════════════
+   15-TEMPLATE GRID
+═══════════════════════════════════════════ */
+.tmpl-grid-15 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  padding: 0 4px;
+  margin-bottom: 4px;
+}
+@media (max-width: 700px) { .tmpl-grid-15 { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 480px) { .tmpl-grid-15 { grid-template-columns: repeat(3, 1fr); gap: 6px; } }
+
+.tmpl-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 10px;
+  transition: transform .15s;
+}
+.tmpl-card:hover { transform: translateY(-2px); }
+
+.tt {
+  width: 100%;
+  aspect-ratio: 3/2;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: border-color .15s;
+}
+.tmpl-card.active .tt { border-color: hsl(142 71% 45%); }
+.tmpl-card:hover .tt { border-color: hsl(0 0% 40%); }
+.tmpl-card.active:hover .tt { border-color: hsl(142 71% 45%); }
+
+.tt-txt {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  line-height: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tt-bar {
+  width: 100%;
+  height: 5px;
+  flex-shrink: 0;
+}
+.tc-name {
+  font-size: 10px;
+  color: hsl(0 0% 50%);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  font-family: 'JetBrains Mono', monospace;
+}
+.tmpl-card.active .tc-name { color: hsl(142 71% 45%); }

@@ -1,22 +1,14 @@
 (function () {
   'use strict';
 
-  /* ── state ── */
   let wiz = {
-    token: null,
-    username: null,
-    displayName: null,
-    chatHistory: [],
-    portfolioData: null,
-    selectedTemplate: 1,
-    shareUrl: null,
-    authTab: 'login',
+    token: null, username: null, displayName: null,
+    chatHistory: [], portfolioData: null,
+    selectedTemplate: 1, shareUrl: null,
+    authTab: 'login', mode: null,
   };
 
-  /* ── DOM refs (built lazily) ── */
-  let overlay, chatMsgs, chatInput, chatSend, progressFill, progressLabel;
-  let authError, authUsernameEl, authPasswordEl, authDisplayEl;
-  let previewFrame;
+  let overlay, chatMsgs, chatInput, chatSend, previewFrame;
 
   /* ── open / close ── */
   function openWizard() {
@@ -24,14 +16,12 @@
     if (!overlay) return;
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    // restore session if any
     const saved = sessionStorage.getItem('builder_token');
     if (saved) {
       wiz.token = saved;
       wiz.username = sessionStorage.getItem('builder_username');
       wiz.displayName = sessionStorage.getItem('builder_displayName');
-      showStep('chat');
-      startChat();
+      showStep('choosepath');
     } else {
       showStep('auth');
     }
@@ -44,21 +34,24 @@
   }
 
   /* ── step navigation ── */
-  const STEPS = ['auth', 'chat', 'generating', 'preview'];
-  const STEP_LABELS = ['Sign in', 'Tell us about you', 'Building', 'Your portfolio'];
+  const ALL_STEPS = ['auth', 'choosepath', 'chat', 'manual', 'generating', 'preview'];
+  const PROGRESS_IDX = { auth: 0, choosepath: 1, chat: 2, manual: 2, generating: 3, preview: 4 };
+  const PROGRESS_LABELS = ['Sign in', 'Choose path', 'Tell us about you', 'Building…', 'Your portfolio'];
+
   function showStep(id) {
-    STEPS.forEach(s => {
+    ALL_STEPS.forEach(s => {
       const el = document.getElementById(`wiz-step-${s}`);
       if (el) el.classList.toggle('active', s === id);
     });
-    const idx = STEPS.indexOf(id);
+    const idx = PROGRESS_IDX[id] ?? 0;
+    const pct = Math.round(((idx + 1) / 5) * 100);
     const fill = document.getElementById('wiz-progress-fill');
     const label = document.getElementById('wiz-progress-label-step');
-    if (fill) fill.style.width = `${Math.round(((idx + 1) / STEPS.length) * 100)}%`;
-    if (label) label.textContent = STEP_LABELS[idx] || '';
+    if (fill) fill.style.width = `${pct}%`;
+    if (label) label.textContent = PROGRESS_LABELS[idx] || '';
   }
 
-  /* ── auth tab ── */
+  /* ── auth ── */
   function setAuthTab(tab) {
     wiz.authTab = tab;
     document.querySelectorAll('.auth-tab').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
@@ -69,18 +62,12 @@
     const title = document.getElementById('auth-title');
     if (title) title.textContent = tab === 'login' ? 'Welcome back' : 'Create your account';
     const sub = document.getElementById('auth-subtitle');
-    if (sub) sub.textContent = tab === 'login' ? 'Sign in to build or update your portfolio.' : 'Get your own portfolio in minutes — free.';
+    if (sub) sub.textContent = tab === 'login' ? 'Sign in to build or update your portfolio.' : 'Get your portfolio live in minutes — free.';
     clearAuthError();
   }
 
-  function clearAuthError() {
-    const el = document.getElementById('auth-error');
-    if (el) el.textContent = '';
-  }
-  function showAuthError(msg) {
-    const el = document.getElementById('auth-error');
-    if (el) el.textContent = msg;
-  }
+  function clearAuthError() { const el = document.getElementById('auth-error'); if (el) el.textContent = ''; }
+  function showAuthError(msg) { const el = document.getElementById('auth-error'); if (el) el.textContent = msg; }
 
   async function submitAuth(e) {
     e.preventDefault();
@@ -93,7 +80,9 @@
     clearAuthError();
     try {
       const endpoint = wiz.authTab === 'login' ? '/api/builder/login' : '/api/builder/register';
-      const body = wiz.authTab === 'register' ? { username, password, displayName: displayName || username } : { username, password };
+      const body = wiz.authTab === 'register'
+        ? { username, password, displayName: displayName || username }
+        : { username, password };
       const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) { showAuthError(data.error || 'Something went wrong.'); return; }
@@ -101,13 +90,26 @@
       sessionStorage.setItem('builder_token', wiz.token);
       sessionStorage.setItem('builder_username', wiz.username);
       sessionStorage.setItem('builder_displayName', wiz.displayName);
-      showStep('chat');
-      startChat();
+      showStep('choosepath');
     } catch { showAuthError('Network error — please try again.'); }
     finally { if (btn) { btn.disabled = false; btn.textContent = wiz.authTab === 'login' ? 'Sign in →' : 'Create account →'; } }
   }
 
-  /* ── chat wizard ── */
+  /* ── choose path ── */
+  function chooseAI() {
+    wiz.mode = 'ai';
+    showStep('chat');
+    startChat();
+  }
+
+  function chooseManual() {
+    wiz.mode = 'manual';
+    showStep('manual');
+    if ((document.getElementById('me-exp-list')?.children.length ?? 0) === 0) addExperience();
+    if ((document.getElementById('me-proj-list')?.children.length ?? 0) === 0) addProject();
+  }
+
+  /* ── chat ── */
   function startChat() {
     chatMsgs = document.getElementById('wiz-chat-messages');
     chatInput = document.getElementById('wiz-chat-input');
@@ -115,7 +117,6 @@
     if (!chatMsgs) return;
     wiz.chatHistory = [];
     chatMsgs.innerHTML = '';
-    // send empty first message to get AI greeting
     sendToAI(null);
   }
 
@@ -125,9 +126,7 @@
     const div = document.createElement('div');
     div.className = `chat-msg ${role === 'user' ? 'user' : 'ai'}`;
     const initials = role === 'user' ? (wiz.displayName || wiz.username || 'U')[0].toUpperCase() : 'AI';
-    div.innerHTML = `
-      <div class="chat-avatar">${initials}</div>
-      <div class="chat-bubble">${text.replace(/\n/g, '<br>')}</div>`;
+    div.innerHTML = `<div class="chat-avatar">${initials}</div><div class="chat-bubble">${text.replace(/\n/g, '<br>')}</div>`;
     chatMsgs.appendChild(div);
     chatMsgs.scrollTop = chatMsgs.scrollHeight;
   }
@@ -160,10 +159,9 @@
       const data = await res.json();
       hideTyping();
       const aiText = data.content || '';
-      // strip JSON block from display text
       const displayText = aiText.replace(/```json[\s\S]*?```/g, '').trim();
       if (displayText) {
-        appendMsg('ai', displayText || 'Got it! Let me generate your portfolio now…');
+        appendMsg('ai', displayText);
         wiz.chatHistory.push({ role: 'assistant', content: aiText });
       }
       if (data.complete && data.portfolioData?.data) {
@@ -172,7 +170,7 @@
       }
     } catch {
       hideTyping();
-      appendMsg('ai', "Sorry, something went wrong. Please try again.");
+      appendMsg('ai', 'Sorry, something went wrong. Please try again.');
     } finally { setChatEnabled(true); }
   }
 
@@ -192,10 +190,118 @@
     sendToAI(text);
   }
 
+  /* ── manual editor ── */
+  function addExperience() {
+    const list = document.getElementById('me-exp-list');
+    if (!list) return;
+    const idx = list.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'me-exp-item me-item';
+    div.innerHTML = `
+      <div class="me-item-hdr">
+        <span class="me-item-label">Experience ${idx}</span>
+        <button class="me-remove-btn" type="button">✕ Remove</button>
+      </div>
+      <div class="me-field-row">
+        <div class="me-field"><label>Role / Title</label><input type="text" name="role" placeholder="e.g. Software Engineer" /></div>
+        <div class="me-field"><label>Company</label><input type="text" name="company" placeholder="e.g. Acme Corp" /></div>
+      </div>
+      <div class="me-field-row">
+        <div class="me-field"><label>Period</label><input type="text" name="period" placeholder="e.g. Jan 2022 — Present" /></div>
+        <div class="me-field"><label>Location</label><input type="text" name="location" placeholder="e.g. Remote" /></div>
+      </div>
+      <div class="me-field"><label>Description</label><textarea name="description" rows="3" placeholder="Describe your role, responsibilities, and key achievements..."></textarea></div>
+      <div class="me-field"><label>Skills used (comma-separated)</label><input type="text" name="skills" placeholder="e.g. React, TypeScript, Node.js" /></div>
+    `;
+    div.querySelector('.me-remove-btn').addEventListener('click', () => div.remove());
+    list.appendChild(div);
+    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function addProject() {
+    const list = document.getElementById('me-proj-list');
+    if (!list) return;
+    const idx = list.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'me-proj-item me-item';
+    div.innerHTML = `
+      <div class="me-item-hdr">
+        <span class="me-item-label">Project ${idx}</span>
+        <button class="me-remove-btn" type="button">✕ Remove</button>
+      </div>
+      <div class="me-field-row">
+        <div class="me-field"><label>Project Name</label><input type="text" name="name" placeholder="e.g. My Awesome App" /></div>
+        <div class="me-field"><label>Tags (comma-separated)</label><input type="text" name="tags" placeholder="e.g. React, Firebase, AI" /></div>
+      </div>
+      <div class="me-field"><label>Description</label><textarea name="description" rows="3" placeholder="What does this project do? What problems does it solve?"></textarea></div>
+      <div class="me-field-row">
+        <div class="me-field"><label>GitHub URL</label><input type="url" name="githubUrl" placeholder="https://github.com/..." /></div>
+        <div class="me-field"><label>Live URL</label><input type="url" name="liveUrl" placeholder="https://..." /></div>
+      </div>
+    `;
+    div.querySelector('.me-remove-btn').addEventListener('click', () => div.remove());
+    list.appendChild(div);
+    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function addSkillChip(skill) {
+    if (!skill.trim()) return;
+    const wrap = document.getElementById('me-skills-wrap');
+    if (!wrap) return;
+    const existing = [...wrap.querySelectorAll('.me-skill-chip')].map(c => c.dataset.skill);
+    if (existing.includes(skill.trim())) return;
+    const chip = document.createElement('div');
+    chip.className = 'me-skill-chip';
+    chip.dataset.skill = skill.trim();
+    chip.innerHTML = `${skill.trim()}<button class="me-chip-remove" type="button" title="Remove">×</button>`;
+    chip.querySelector('.me-chip-remove').addEventListener('click', () => chip.remove());
+    wrap.appendChild(chip);
+  }
+
+  function collectManualData() {
+    const g = id => document.getElementById(id)?.value?.trim() || '';
+    const experience = [...document.querySelectorAll('.me-exp-item')].map(el => ({
+      role: el.querySelector('[name=role]')?.value?.trim() || '',
+      company: el.querySelector('[name=company]')?.value?.trim() || '',
+      period: el.querySelector('[name=period]')?.value?.trim() || '',
+      location: el.querySelector('[name=location]')?.value?.trim() || '',
+      description: el.querySelector('[name=description]')?.value?.trim() || '',
+      skills: (el.querySelector('[name=skills]')?.value || '').split(',').map(s => s.trim()).filter(Boolean),
+    })).filter(e => e.role || e.company);
+
+    const projects = [...document.querySelectorAll('.me-proj-item')].map(el => ({
+      name: el.querySelector('[name=name]')?.value?.trim() || '',
+      description: el.querySelector('[name=description]')?.value?.trim() || '',
+      githubUrl: el.querySelector('[name=githubUrl]')?.value?.trim() || '',
+      liveUrl: el.querySelector('[name=liveUrl]')?.value?.trim() || '',
+      tags: (el.querySelector('[name=tags]')?.value || '').split(',').map(s => s.trim()).filter(Boolean),
+    })).filter(p => p.name);
+
+    const skills = [...document.querySelectorAll('.me-skill-chip')].map(c => c.dataset.skill).filter(Boolean);
+
+    return {
+      name: g('me-name'), title: g('me-title'), bio: g('me-bio'),
+      location: g('me-location'), email: g('me-email'),
+      links: { github: g('me-github'), linkedin: g('me-linkedin'), website: g('me-website'), twitter: g('me-twitter') },
+      experience, projects, skills,
+    };
+  }
+
+  function handleManualGenerate() {
+    const data = collectManualData();
+    if (!data.name) {
+      const nameEl = document.getElementById('me-name');
+      if (nameEl) { nameEl.focus(); nameEl.style.borderColor = '#ef4444'; setTimeout(() => nameEl.style.borderColor = '', 2000); }
+      return;
+    }
+    wiz.portfolioData = data;
+    generatePortfolio();
+  }
+
   /* ── portfolio generation ── */
   async function generatePortfolio() {
     showStep('generating');
-    const subs = ['Crafting your hero section…', 'Building experience timeline…', 'Polishing your projects…', 'Choosing the perfect layout…', 'Almost there…'];
+    const subs = ['Crafting your hero section…', 'Building experience timeline…', 'Polishing your projects…', 'Applying your chosen design…', 'Almost there…'];
     let i = 0;
     const subEl = document.getElementById('wiz-gen-sub');
     const ticker = setInterval(() => { if (subEl && i < subs.length) subEl.textContent = subs[i++]; }, 900);
@@ -209,12 +315,11 @@
       if (!res.ok) throw new Error(result.error);
       clearInterval(ticker);
       wiz.shareUrl = result.url;
-      // build full URL
       const fullUrl = `${location.protocol}//${location.host}${result.url}`;
-      document.getElementById('wiz-share-url').textContent = fullUrl;
+      const shareEl = document.getElementById('wiz-share-url');
+      if (shareEl) shareEl.textContent = fullUrl;
       const openBtn = document.getElementById('wiz-open-btn');
       if (openBtn) openBtn.href = fullUrl;
-      // load preview
       previewFrame = document.getElementById('wiz-preview-frame');
       if (previewFrame) previewFrame.src = `${result.url}?t=${wiz.selectedTemplate}`;
       showStep('preview');
@@ -227,7 +332,7 @@
   /* ── template switcher ── */
   function switchTemplate(t) {
     wiz.selectedTemplate = t;
-    document.querySelectorAll('.tmpl-btn').forEach(btn => btn.classList.toggle('active', parseInt(btn.dataset.t) === t));
+    document.querySelectorAll('.tmpl-card').forEach(btn => btn.classList.toggle('active', parseInt(btn.dataset.t) === t));
     previewFrame = previewFrame || document.getElementById('wiz-preview-frame');
     if (previewFrame && wiz.shareUrl) previewFrame.src = `${wiz.shareUrl}?t=${t}`;
   }
@@ -242,42 +347,45 @@
     });
   }
 
-  /* ── init (called on DOMContentLoaded) ── */
+  /* ── init ── */
   function init() {
-    // FAB
     document.getElementById('create-portfolio-fab')?.addEventListener('click', openWizard);
-
-    // Close btn
     document.getElementById('wizard-close')?.addEventListener('click', closeWizard);
-
-    // Escape key
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeWizard(); });
 
-    // Auth tabs
     document.querySelectorAll('.auth-tab').forEach(btn => btn.addEventListener('click', () => setAuthTab(btn.dataset.tab)));
-
-    // Auth form
     document.getElementById('auth-form')?.addEventListener('submit', submitAuth);
 
-    // Chat send
+    document.getElementById('btn-ai-path')?.addEventListener('click', chooseAI);
+    document.getElementById('btn-manual-path')?.addEventListener('click', chooseManual);
+
     document.getElementById('wiz-chat-send')?.addEventListener('click', handleChatSend);
     document.getElementById('wiz-chat-input')?.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); }
     });
-
-    // Auto-resize textarea
     document.getElementById('wiz-chat-input')?.addEventListener('input', function () {
       this.style.height = 'auto';
       this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
 
-    // Template switcher
-    document.querySelectorAll('.tmpl-btn').forEach(btn => btn.addEventListener('click', () => switchTemplate(parseInt(btn.dataset.t))));
+    document.getElementById('me-add-exp')?.addEventListener('click', addExperience);
+    document.getElementById('me-add-proj')?.addEventListener('click', addProject);
+    document.getElementById('me-generate-btn')?.addEventListener('click', handleManualGenerate);
+    document.getElementById('me-generate-btn-bottom')?.addEventListener('click', handleManualGenerate);
 
-    // Copy link
+    const skillInput = document.getElementById('me-skill-input');
+    const addSkillBtn = document.getElementById('me-add-skill-btn');
+    function tryAddSkill() {
+      const val = skillInput?.value?.trim();
+      if (!val) return;
+      addSkillChip(val);
+      if (skillInput) skillInput.value = '';
+    }
+    skillInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); tryAddSkill(); } });
+    addSkillBtn?.addEventListener('click', tryAddSkill);
+
+    document.querySelectorAll('.tmpl-card').forEach(btn => btn.addEventListener('click', () => switchTemplate(parseInt(btn.dataset.t))));
     document.getElementById('wiz-copy-btn')?.addEventListener('click', copyLink);
-
-    // "Create Your Portfolio" CTA link (in hero/footer)
     document.querySelectorAll('[data-open-wizard]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); openWizard(); }));
   }
 

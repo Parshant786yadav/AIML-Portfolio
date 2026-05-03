@@ -147,7 +147,147 @@ function notFoundPage(username: string) {
 function renderTemplate(d: any, t: number): string {
   if (t === 2) return template2(d);
   if (t === 3) return template3(d);
+  if (t >= 4 && t <= 15) return factoryTemplate(d, THEME_CFGS[t]);
   return template1(d);
+}
+
+interface ThemeCfg {
+  bg: string; s: string; b: string; fg: string; mu: string; ac: string;
+  font: string; mono: string; gf: string;
+  tBg: string; tFg: string; tBd: string;
+  avBg: string; avFg: string;
+  extra?: string;
+}
+const THEME_CFGS: Record<number, ThemeCfg> = {
+  4: { bg:'#060e1c',s:'#0d1f38',b:'#1e3550',fg:'#deeeff',mu:'#5580a0',ac:'#38bdf8',
+    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
+    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
+    tBg:'rgba(56,189,248,.08)',tFg:'#38bdf8',tBd:'rgba(56,189,248,.2)',avBg:'#38bdf8',avFg:'#000' },
+  5: { bg:'#100d05',s:'#1c1708',b:'#2e2610',fg:'#f0e6c8',mu:'#7a6840',ac:'#f59e0b',
+    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
+    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
+    tBg:'rgba(245,158,11,.08)',tFg:'#f59e0b',tBd:'rgba(245,158,11,.2)',avBg:'#f59e0b',avFg:'#000' },
+  6: { bg:'#000',s:'#080808',b:'#1a2a1a',fg:'#00ff41',mu:'#006820',ac:'#00ff41',
+    font:"'JetBrains Mono',monospace",mono:"'JetBrains Mono',monospace",
+    gf:'family=JetBrains+Mono:wght@400;500;700',
+    tBg:'rgba(0,255,65,.08)',tFg:'#00ff41',tBd:'rgba(0,255,65,.2)',avBg:'#001a08',avFg:'#00ff41',
+    extra:`body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.05) 2px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:9999}
+.hn{text-shadow:0 0 20px rgba(0,255,65,.5)}.hero{border-bottom-color:#1a2a1a}
+.av{border-radius:2px;border:1px solid #00ff41}.proj-card,.skill-tag{border-radius:2px}` },
+  7: { bg:'#ffffff',s:'#f5f5f5',b:'#e0e0e0',fg:'#0a0a0a',mu:'#666',ac:'#0a0a0a',
+    font:"'Inter',sans-serif",mono:"'Inter',sans-serif",gf:'family=Inter:wght@400;500;600;700',
+    tBg:'#ebebeb',tFg:'#333',tBd:'#d0d0d0',avBg:'#0a0a0a',avFg:'#fff',
+    extra:`.proj-card{box-shadow:0 1px 4px rgba(0,0,0,.08)}.soc a,.skill-tag{border-radius:4px}` },
+  8: { bg:'#fdf4ff',s:'#fff',b:'#e8d0f5',fg:'#2d1b4e',mu:'#8a6aab',ac:'#9333ea',
+    font:"'Inter',sans-serif",mono:"'Inter',sans-serif",gf:'family=Inter:wght@400;500;600;700',
+    tBg:'rgba(147,51,234,.08)',tFg:'#9333ea',tBd:'rgba(147,51,234,.2)',avBg:'#9333ea',avFg:'#fff',
+    extra:`.av{background:linear-gradient(135deg,#9333ea,#ec4899)!important}
+.proj-card{box-shadow:0 2px 12px rgba(147,51,234,.07)}.skill-tag,.soc a{border-radius:20px}` },
+  9: { bg:'#fffbf2',s:'#fff9ec',b:'#e0d8c0',fg:'#1a1206',mu:'#7a6a50',ac:'#c2410c',
+    font:"Georgia,'Times New Roman',serif",mono:"'Courier New',monospace",gf:'',
+    tBg:'rgba(194,65,12,.06)',tFg:'#c2410c',tBd:'rgba(194,65,12,.18)',avBg:'#c2410c',avFg:'#fff',
+    extra:`.hn{font-size:30px;letter-spacing:-.02em}.sl{letter-spacing:.18em}
+.proj-card{border-left:3px solid #c2410c;border-top:none;border-right:none;border-bottom:none;background:transparent;border-radius:0;padding-left:18px}
+.av{border-radius:4px;font-family:Georgia,serif}` },
+  10: { bg:'#0f0f23',s:'rgba(255,255,255,0.05)',b:'rgba(255,255,255,0.1)',fg:'#ffffff',mu:'#9090c0',ac:'#818cf8',
+    font:"'Inter',sans-serif",mono:"'Inter',sans-serif",gf:'family=Inter:wght@400;500;600;700',
+    tBg:'rgba(129,140,248,.08)',tFg:'#818cf8',tBd:'rgba(129,140,248,.2)',avBg:'#818cf8',avFg:'#fff',
+    extra:`body{background-image:radial-gradient(ellipse at top left,rgba(129,140,248,.15) 0%,transparent 50%),radial-gradient(ellipse at bottom right,rgba(192,132,252,.1) 0%,transparent 50%)}
+.av{background:linear-gradient(135deg,#818cf8,#c084fc)!important}
+.proj-card,.soc a,.skill-tag{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.hero{border-bottom-color:rgba(255,255,255,.1)}.proj-card{border-radius:16px}.soc a,.skill-tag{border-radius:20px}` },
+  11: { bg:'#050f08',s:'#0b1a0e',b:'#153020',fg:'#c8f5d8',mu:'#4a7a5a',ac:'#4ade80',
+    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
+    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
+    tBg:'rgba(74,222,128,.07)',tFg:'#4ade80',tBd:'rgba(74,222,128,.18)',avBg:'#153020',avFg:'#4ade80' },
+  12: { bg:'#0f0505',s:'#1c0a0a',b:'#3a1515',fg:'#f5e8e8',mu:'#8a5050',ac:'#ef4444',
+    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
+    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
+    tBg:'rgba(239,68,68,.07)',tFg:'#ef4444',tBd:'rgba(239,68,68,.2)',avBg:'#ef4444',avFg:'#fff' },
+  13: { bg:'#030014',s:'#08002a',b:'rgba(232,121,249,.12)',fg:'#e8e0ff',mu:'#7060aa',ac:'#e879f9',
+    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
+    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
+    tBg:'rgba(232,121,249,.08)',tFg:'#e879f9',tBd:'rgba(232,121,249,.2)',avBg:'#e879f9',avFg:'#000',
+    extra:`.av{background:linear-gradient(135deg,#9333ea,#e879f9)!important}
+.hn{text-shadow:0 0 24px rgba(232,121,249,.35)}.proj-card{box-shadow:0 0 20px rgba(232,121,249,.06)}` },
+  14: { bg:'#faf8f2',s:'#fff',b:'#d0c8b0',fg:'#1a1408',mu:'#6a5a40',ac:'#1e40af',
+    font:"Georgia,'Times New Roman',serif",mono:"'Courier New',monospace",gf:'',
+    tBg:'rgba(30,64,175,.06)',tFg:'#1e40af',tBd:'rgba(30,64,175,.18)',avBg:'#1e40af',avFg:'#fff',
+    extra:`.hn{font-size:28px}.proj-card{box-shadow:0 1px 3px rgba(0,0,0,.07);border-radius:4px}
+.skill-tag,.soc a,.av{border-radius:4px}` },
+  15: { bg:'#ffffff',s:'#f0f0f0',b:'#000000',fg:'#000000',mu:'#444',ac:'#dc2626',
+    font:"'Arial Black','Impact',sans-serif",mono:"'Courier New',monospace",gf:'',
+    tBg:'#000',tFg:'#fff',tBd:'#000',avBg:'#dc2626',avFg:'#fff',
+    extra:`*{border-radius:0!important}.hn{font-size:32px;text-transform:uppercase;letter-spacing:-.02em}
+.ht{color:var(--ac);font-family:'Courier New',monospace}.hero{border-bottom:4px solid #000;padding:40px 0 32px}
+.sl{border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:20px;font-family:'Courier New',monospace}
+.proj-card{border:2px solid #000;background:#fff;box-shadow:4px 4px 0 #000}.soc a{border:2px solid #000;font-family:'Courier New',monospace}
+.soc a:hover{background:#000;color:#fff}.skill-tag{border:2px solid #000;font-family:'Courier New',monospace}.av{border:3px solid #dc2626}` },
+};
+
+function factoryTemplate(d: any, cfg: ThemeCfg): string {
+  const init = (d.name || "?")[0].toUpperCase();
+  const soc = socialLinks(d, cfg.ac);
+  const loc = d.location ? `<div style="font-family:${cfg.mono};font-size:12px;color:${cfg.mu};margin-top:4px">📍 ${d.location}</div>` : "";
+  const gfLink = cfg.gf ? `<link href="https://fonts.googleapis.com/css2?${cfg.gf}&display=swap" rel="stylesheet">` : "";
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${d.name || "Portfolio"}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+${gfLink}
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:${cfg.bg};--s:${cfg.s};--b:${cfg.b};--fg:${cfg.fg};--mu:${cfg.mu};--ac:${cfg.ac}}
+body{background:var(--bg);color:var(--fg);font-family:${cfg.font};line-height:1.65}
+a{color:var(--ac);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+.hero{padding:52px 0 44px;border-bottom:1px solid var(--b)}
+.hero-inner{display:flex;gap:28px;align-items:flex-start}
+.av{width:70px;height:70px;border-radius:50%;background:${cfg.avBg};color:${cfg.avFg};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;flex-shrink:0}
+.hn{font-size:26px;font-weight:700;margin-bottom:4px}
+.ht{font-family:${cfg.mono};font-size:13px;color:var(--ac);margin-bottom:6px}
+.hb{font-size:14px;color:var(--mu);line-height:1.7;margin-top:10px}
+.soc{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.soc a{font-size:12px;font-family:${cfg.mono};padding:4px 12px;border:1px solid var(--b);border-radius:6px;color:var(--fg);transition:.15s}
+.soc a:hover{border-color:var(--ac);color:var(--ac);text-decoration:none}
+.main{padding:44px 0}.section{margin-bottom:44px}
+.sl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-family:${cfg.mono};color:var(--mu);margin-bottom:20px}
+.exp-item{display:flex;gap:16px;margin-bottom:24px}
+.exp-dot{width:8px;height:8px;border-radius:50%;background:var(--ac);margin-top:7px;flex-shrink:0}
+.exp-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.exp-head strong{font-size:15px;font-weight:600}.period{font-size:12px;font-family:${cfg.mono};color:var(--mu)}
+.company{font-size:12px;color:var(--ac);font-family:${cfg.mono};margin:2px 0 6px}.exp-body p{font-size:14px;color:var(--mu);line-height:1.65}
+.proj-card{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:18px;margin-bottom:14px}
+.proj-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.proj-head h3{font-size:15px;font-weight:600}.proj-links{display:flex;gap:10px}
+.proj-links a{font-size:12px;font-family:${cfg.mono};color:var(--ac)}
+.proj-card p{font-size:14px;color:var(--mu);line-height:1.65;margin-bottom:10px}
+.tags,.skills-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tag{font-size:11px;font-family:${cfg.mono};padding:2px 8px;background:${cfg.tBg};color:${cfg.tFg};border:1px solid ${cfg.tBd};border-radius:4px}
+.skill-tag{font-size:12px;font-family:${cfg.mono};padding:5px 12px;background:var(--s);border:1px solid var(--b);border-radius:6px;color:var(--fg)}
+${cfg.extra || ""}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero"><div class="hero-inner">
+  <div class="av">${init}</div>
+  <div>
+    <div class="hn">${d.name || ""}</div>
+    <div class="ht">${d.title || ""}</div>${loc}
+    <p class="hb">${d.bio || ""}</p>
+    <div class="soc">${soc}</div>
+  </div>
+</div></div>
+<div class="main">
+${d.experience?.length ? `<div class="section"><div class="sl">Work Experience.</div>${expHtml(d.experience)}</div>` : ""}
+${d.projects?.length ? `<div class="section"><div class="sl">Projects.</div>${projHtml(d.projects, cfg.ac)}</div>` : ""}
+${d.skills?.length ? `<div class="section"><div class="sl">Skills.</div><div class="skills-wrap">${skillsHtml(d.skills)}</div></div>` : ""}
+${createBanner(d.username)}
+</div></div>
+</body></html>`;
 }
 
 function expHtml(exp: any[]): string {

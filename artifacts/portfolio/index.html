@@ -585,7 +585,101 @@
         </div>
       </div>
 
-      <!-- Step 2: Chat Wizard -->
+      <!-- Step 2: Choose Path -->
+      <div class="wizard-step" id="wiz-step-choosepath">
+        <div class="choosepath-wrap">
+          <h2 class="choosepath-title">How do you want to build?</h2>
+          <p class="choosepath-sub">Choose your path — you can always come back to update later.</p>
+          <div class="choosepath-cards">
+            <button class="choosepath-card" id="btn-ai-path">
+              <div class="cp-icon-wrap">✦</div>
+              <h3>AI Guided</h3>
+              <p>Chat with our AI and answer a few questions — it builds everything automatically for you.</p>
+              <span class="cp-badge">Recommended</span>
+            </button>
+            <button class="choosepath-card" id="btn-manual-path">
+              <div class="cp-icon-wrap">✏</div>
+              <h3>Build Manually</h3>
+              <p>Fill in every detail yourself — full control over experience, projects, skills, and links.</p>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3b: Manual Editor -->
+      <div class="wizard-step" id="wiz-step-manual">
+        <div class="manual-editor">
+          <div class="me-topbar">
+            <div>
+              <h2 class="me-heading">Your Portfolio Details</h2>
+              <p class="me-subheading">Fill in what you have — only your name is required.</p>
+            </div>
+            <button class="wiz-btn-primary me-gen-top" id="me-generate-btn" type="button">Generate Portfolio →</button>
+          </div>
+
+          <!-- Personal Info -->
+          <div class="me-section">
+            <div class="me-section-title">Personal Info</div>
+            <div class="me-field-row">
+              <div class="me-field"><label>Full Name <span class="me-required">*</span></label><input type="text" id="me-name" placeholder="e.g. Jane Smith" /></div>
+              <div class="me-field"><label>Job Title / Role</label><input type="text" id="me-title" placeholder="e.g. Frontend Developer" /></div>
+            </div>
+            <div class="me-field-row">
+              <div class="me-field"><label>Location</label><input type="text" id="me-location" placeholder="e.g. New York, USA" /></div>
+              <div class="me-field"><label>Email</label><input type="email" id="me-email" placeholder="your@email.com" /></div>
+            </div>
+            <div class="me-field"><label>Bio / About You</label><textarea id="me-bio" rows="4" placeholder="Write a short paragraph about yourself — your background, what you do, and what drives you..."></textarea></div>
+          </div>
+
+          <!-- Links -->
+          <div class="me-section">
+            <div class="me-section-title">Links</div>
+            <div class="me-field-row">
+              <div class="me-field"><label>GitHub</label><input type="url" id="me-github" placeholder="https://github.com/username" /></div>
+              <div class="me-field"><label>LinkedIn</label><input type="url" id="me-linkedin" placeholder="https://linkedin.com/in/username" /></div>
+            </div>
+            <div class="me-field-row">
+              <div class="me-field"><label>Website</label><input type="url" id="me-website" placeholder="https://yourwebsite.com" /></div>
+              <div class="me-field"><label>Twitter / X</label><input type="url" id="me-twitter" placeholder="https://twitter.com/username" /></div>
+            </div>
+          </div>
+
+          <!-- Experience -->
+          <div class="me-section">
+            <div class="me-section-hdr">
+              <div class="me-section-title">Work Experience</div>
+              <button class="me-add-btn" id="me-add-exp" type="button">+ Add Experience</button>
+            </div>
+            <div id="me-exp-list"></div>
+          </div>
+
+          <!-- Projects -->
+          <div class="me-section">
+            <div class="me-section-hdr">
+              <div class="me-section-title">Projects</div>
+              <button class="me-add-btn" id="me-add-proj" type="button">+ Add Project</button>
+            </div>
+            <div id="me-proj-list"></div>
+          </div>
+
+          <!-- Skills -->
+          <div class="me-section">
+            <div class="me-section-title">Skills</div>
+            <div class="me-tags-wrap" id="me-skills-wrap"></div>
+            <div class="me-tag-input-row">
+              <input type="text" id="me-skill-input" placeholder="Type a skill and press Enter" />
+              <button class="me-add-btn" id="me-add-skill-btn" type="button">Add</button>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="me-footer">
+            <button class="wiz-btn-primary" id="me-generate-btn-bottom" type="button">Generate My Portfolio →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3a: Chat Wizard -->
       <div class="wizard-step" id="wiz-step-chat">
         <div class="chat-container">
           <h2 class="chat-title">Let's build your portfolio</h2>
@@ -614,19 +708,22 @@
         <div class="preview-header">
           <h2>Your portfolio is ready!</h2>
           <p>Pick a design, copy your link, and share it with the world.</p>
-          <div class="template-switcher">
-            <button class="tmpl-btn active" data-t="1">
-              <span class="tmpl-dot" style="background:hsl(142 71% 45%)"></span>
-              Dark Minimal
-            </button>
-            <button class="tmpl-btn" data-t="2">
-              <span class="tmpl-dot" style="background:#3b5bdb"></span>
-              Light Professional
-            </button>
-            <button class="tmpl-btn" data-t="3">
-              <span class="tmpl-dot" style="background:#a855f7"></span>
-              Creative Bold
-            </button>
+          <div class="tmpl-grid-15" id="tmpl-grid">
+            <button class="tmpl-card active" data-t="1"><div class="tt" style="background:#0a0a0a"><span class="tt-txt" style="color:#333">Aa</span><div class="tt-bar" style="background:hsl(142 71% 45%)"></div></div><span class="tc-name">Dark Minimal</span></button>
+            <button class="tmpl-card" data-t="2"><div class="tt" style="background:#f8f9fb"><span class="tt-txt" style="color:#ccc">Aa</span><div class="tt-bar" style="background:#3b5bdb"></div></div><span class="tc-name">Light Pro</span></button>
+            <button class="tmpl-card" data-t="3"><div class="tt" style="background:#0d0d0d"><span class="tt-txt" style="color:#2a2a2a">Aa</span><div class="tt-bar" style="background:#a855f7"></div></div><span class="tc-name">Creative Bold</span></button>
+            <button class="tmpl-card" data-t="4"><div class="tt" style="background:#060e1c"><span class="tt-txt" style="color:#1e3550">Aa</span><div class="tt-bar" style="background:#38bdf8"></div></div><span class="tc-name">Ocean Night</span></button>
+            <button class="tmpl-card" data-t="5"><div class="tt" style="background:#100d05"><span class="tt-txt" style="color:#2e2610">Aa</span><div class="tt-bar" style="background:#f59e0b"></div></div><span class="tc-name">Amber Glow</span></button>
+            <button class="tmpl-card" data-t="6"><div class="tt" style="background:#000"><span class="tt-txt" style="color:#1a2a1a">Aa</span><div class="tt-bar" style="background:#00ff41"></div></div><span class="tc-name">Terminal</span></button>
+            <button class="tmpl-card" data-t="7"><div class="tt" style="background:#fff"><span class="tt-txt" style="color:#ccc">Aa</span><div class="tt-bar" style="background:#0a0a0a"></div></div><span class="tc-name">Monochrome</span></button>
+            <button class="tmpl-card" data-t="8"><div class="tt" style="background:#fdf4ff"><span class="tt-txt" style="color:#e8d0f5">Aa</span><div class="tt-bar" style="background:#9333ea"></div></div><span class="tc-name">Soft Pastel</span></button>
+            <button class="tmpl-card" data-t="9"><div class="tt" style="background:#fffbf2"><span class="tt-txt" style="color:#e0d8c0">Aa</span><div class="tt-bar" style="background:#c2410c"></div></div><span class="tc-name">Editorial</span></button>
+            <button class="tmpl-card" data-t="10"><div class="tt" style="background:#0f0f23"><span class="tt-txt" style="color:#3a3a6a">Aa</span><div class="tt-bar" style="background:#818cf8"></div></div><span class="tc-name">Glass</span></button>
+            <button class="tmpl-card" data-t="11"><div class="tt" style="background:#050f08"><span class="tt-txt" style="color:#0d2018">Aa</span><div class="tt-bar" style="background:#4ade80"></div></div><span class="tc-name">Forest</span></button>
+            <button class="tmpl-card" data-t="12"><div class="tt" style="background:#0f0505"><span class="tt-txt" style="color:#2a0f0f">Aa</span><div class="tt-bar" style="background:#ef4444"></div></div><span class="tc-name">Cardinal</span></button>
+            <button class="tmpl-card" data-t="13"><div class="tt" style="background:#030014"><span class="tt-txt" style="color:#1a0a2a">Aa</span><div class="tt-bar" style="background:#e879f9"></div></div><span class="tc-name">Neon</span></button>
+            <button class="tmpl-card" data-t="14"><div class="tt" style="background:#faf8f2"><span class="tt-txt" style="color:#d0c8b0">Aa</span><div class="tt-bar" style="background:#1e40af"></div></div><span class="tc-name">Academic</span></button>
+            <button class="tmpl-card" data-t="15"><div class="tt" style="background:#fff"><span class="tt-txt" style="color:#ccc">Aa</span><div class="tt-bar" style="background:#dc2626"></div></div><span class="tc-name">Brutalist</span></button>
           </div>
         </div>
         <div class="preview-frame-wrap">
