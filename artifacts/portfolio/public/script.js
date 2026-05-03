@@ -1397,6 +1397,11 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   userModalClose?.addEventListener('click', closeModal);
   userModal?.addEventListener('click', e => { if (e.target === userModal) closeModal(); });
 
+  /* Portfolio builder CTA button → open register tab */
+  document.getElementById('pbuilder-open-modal')?.addEventListener('click', () => {
+    setMode(true); openModal();
+  });
+
   /* ── Dashboard panel ── */
   function openDash(email, slug) {
     dashSlug = slug;
