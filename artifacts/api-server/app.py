@@ -366,11 +366,11 @@ def admin_db_users():
     cur  = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute("""
         SELECT u.id, u.email, u.slug,
-               to_char(u.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at,
+               to_char(u.created_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI:SS') AS created_at,
                COUNT(DISTINCT al_e.id)                          AS edit_count,
-               to_char(MAX(al_e.created_at), 'YYYY-MM-DD HH24:MI:SS') AS last_edit,
+               to_char(MAX(al_e.created_at) AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI:SS') AS last_edit,
                COUNT(DISTINCT al_l.id)                          AS login_count,
-               to_char(MAX(al_l.created_at), 'YYYY-MM-DD HH24:MI:SS') AS last_login,
+               to_char(MAX(al_l.created_at) AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI:SS') AS last_login,
                COUNT(DISTINCT cs.id)                            AS contact_count
         FROM users u
         LEFT JOIN activity_log al_e ON al_e.user_id = u.id AND al_e.event_type = 'edit'
@@ -394,7 +394,7 @@ def admin_db_contacts():
     cur  = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute("""
         SELECT id, user_slug, name, email, message,
-               to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+               to_char(created_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI:SS') AS created_at
         FROM contact_submissions ORDER BY created_at DESC
     """)
     rows = cur.fetchall()
@@ -412,7 +412,7 @@ def admin_db_activity():
     cur  = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute("""
         SELECT id, user_slug, user_email, event_type,
-               to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+               to_char(created_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI:SS') AS created_at
         FROM activity_log ORDER BY created_at DESC LIMIT 300
     """)
     rows = cur.fetchall()
