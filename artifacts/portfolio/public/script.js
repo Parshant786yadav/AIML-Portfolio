@@ -31,8 +31,48 @@ function applyTheme(theme) {
 
 applyTheme(getTheme());
 
-function toggleTheme() {
-  applyTheme(html.classList.contains('dark') ? 'light' : 'dark');
+function toggleTheme(event) {
+  const newTheme = html.classList.contains('dark') ? 'light' : 'dark';
+
+  /* ── Button burst effect ── */
+  const btn = event?.currentTarget;
+  if (btn) {
+    btn.classList.remove('theme-btn-burst');
+    void btn.offsetWidth; // reflow to restart animation
+    btn.classList.add('theme-btn-burst');
+    btn.addEventListener('animationend', () => btn.classList.remove('theme-btn-burst'), { once: true });
+  }
+
+  /* ── Circular ripple via View Transitions API ── */
+  if (!document.startViewTransition) {
+    applyTheme(newTheme);
+    return;
+  }
+
+  const x = event?.clientX ?? window.innerWidth / 2;
+  const y = event?.clientY ?? window.innerHeight / 2;
+  const maxRadius = Math.hypot(
+    Math.max(x, window.innerWidth  - x),
+    Math.max(y, window.innerHeight - y)
+  );
+
+  const transition = document.startViewTransition(() => applyTheme(newTheme));
+
+  transition.ready.then(() => {
+    const isDark = newTheme === 'dark';
+    document.documentElement.animate(
+      {
+        clipPath: isDark
+          ? [`circle(0px at ${x}px ${y}px)`, `circle(${maxRadius}px at ${x}px ${y}px)`]
+          : [`circle(${maxRadius}px at ${x}px ${y}px)`, `circle(0px at ${x}px ${y}px)`],
+      },
+      {
+        duration: 550,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        pseudoElement: isDark ? '::view-transition-new(root)' : '::view-transition-old(root)',
+      }
+    );
+  });
 }
 
 document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
