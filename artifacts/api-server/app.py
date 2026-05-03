@@ -63,9 +63,34 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS activity_log (
+            id         SERIAL PRIMARY KEY,
+            user_id    INTEGER,
+            user_slug  TEXT,
+            user_email TEXT,
+            event_type TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     conn.commit()
     cur.close()
     conn.close()
+
+
+def log_activity(user_id, user_slug, user_email, event_type):
+    try:
+        conn = get_db()
+        cur  = conn.cursor()
+        cur.execute(
+            "INSERT INTO activity_log (user_id, user_slug, user_email, event_type) VALUES (%s, %s, %s, %s)",
+            (user_id, user_slug, user_email, event_type),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception:
+        pass
 
 
 def hash_password(pw):
@@ -162,22 +187,20 @@ def user_register():
     try:
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO users (email, password_hash, slug) VALUES (%s, %s, %s)",
+            "INSERT INTO users (email, password_hash, slug) VALUES (%s, %s, %s) RETURNING id",
             (email, hash_password(password), slug),
         )
+        new_id = cur.fetchone()[0]
         conn.commit()
         cur.close()
+        conn.close()
     except psycopg2.IntegrityError:
         conn.rollback()
         conn.close()
         return jsonify({"error": "Email already registered"}), 409
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT id FROM users WHERE email=%s", (email,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
+    log_activity(new_id, slug, email, 'register')
     token = secrets.token_hex(32)
-    user_sessions[token] = row["id"]
+    user_sessions[token] = new_id
     return jsonify({"token": token, "slug": slug, "email": email})
 
 
@@ -199,6 +222,7 @@ def user_login():
         return jsonify({"error": "Invalid credentials"}), 401
     token = secrets.token_hex(32)
     user_sessions[token] = row["id"]
+    log_activity(row["id"], row["slug"], email, 'login')
     return jsonify({"token": token, "slug": row["slug"], "email": email})
 
 
@@ -267,11 +291,12 @@ def save_user_content():
     )
     conn.commit()
     cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur2.execute("SELECT slug FROM users WHERE id=%s", (user_id,))
+    cur2.execute("SELECT slug, email FROM users WHERE id=%s", (user_id,))
     slug_row = cur2.fetchone()
     cur.close()
     cur2.close()
     conn.close()
+    log_activity(user_id, slug_row["slug"], slug_row["email"], 'edit')
     return jsonify({"ok": True, "slug": slug_row["slug"]})
 
 
@@ -324,6 +349,72 @@ def get_user_contacts():
            WHERE user_slug=%s ORDER BY created_at DESC""",
         (row["slug"],),
     )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+
+# ── Admin Database Overview ───────────────────────────────────────────────────
+
+@app.route("/api/admin/db/users", methods=["GET"])
+def admin_db_users():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token or token not in admin_sessions:
+        return jsonify({"error": "Unauthorized"}), 401
+    conn = get_db()
+    cur  = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("""
+        SELECT u.id, u.email, u.slug,
+               to_char(u.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at,
+               COUNT(DISTINCT al_e.id)                          AS edit_count,
+               to_char(MAX(al_e.created_at), 'YYYY-MM-DD HH24:MI:SS') AS last_edit,
+               COUNT(DISTINCT al_l.id)                          AS login_count,
+               to_char(MAX(al_l.created_at), 'YYYY-MM-DD HH24:MI:SS') AS last_login,
+               COUNT(DISTINCT cs.id)                            AS contact_count
+        FROM users u
+        LEFT JOIN activity_log al_e ON al_e.user_id = u.id AND al_e.event_type = 'edit'
+        LEFT JOIN activity_log al_l ON al_l.user_id = u.id AND al_l.event_type = 'login'
+        LEFT JOIN contact_submissions cs ON cs.user_slug = u.slug
+        GROUP BY u.id, u.email, u.slug, u.created_at
+        ORDER BY u.created_at DESC
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+
+@app.route("/api/admin/db/contacts", methods=["GET"])
+def admin_db_contacts():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token or token not in admin_sessions:
+        return jsonify({"error": "Unauthorized"}), 401
+    conn = get_db()
+    cur  = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("""
+        SELECT id, user_slug, name, email, message,
+               to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+        FROM contact_submissions ORDER BY created_at DESC
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+
+@app.route("/api/admin/db/activity", methods=["GET"])
+def admin_db_activity():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token or token not in admin_sessions:
+        return jsonify({"error": "Unauthorized"}), 401
+    conn = get_db()
+    cur  = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("""
+        SELECT id, user_slug, user_email, event_type,
+               to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+        FROM activity_log ORDER BY created_at DESC LIMIT 300
+    """)
     rows = cur.fetchall()
     cur.close()
     conn.close()

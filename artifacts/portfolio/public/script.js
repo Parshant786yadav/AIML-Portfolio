@@ -1195,6 +1195,113 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
       if (token) await fetch('/api/admin/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }).catch(() => {});
       exitAdminMode();
     });
+
+    /* ── Database Panel ── */
+    const adbOverlay = document.getElementById('adb-overlay');
+    const adbBody    = document.getElementById('adb-body');
+    const adbClose   = document.getElementById('adb-close');
+    const adbDbBtn   = document.getElementById('admin-db-btn');
+    let adbActiveTab = 'users';
+    let adbCache     = {};
+
+    function escH(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function adbBadge(type) {
+      const cls = { register:'adb-badge-register', login:'adb-badge-login', edit:'adb-badge-edit' }[type] || '';
+      return `<span class="adb-badge ${cls}">${escH(type)}</span>`;
+    }
+
+    function renderUsers(rows) {
+      if (!rows.length) return '<p class="adb-empty">No users registered yet.</p>';
+      const summary = `
+        <div class="adb-summary">
+          <div class="adb-summary-card"><div class="adb-summary-num">${rows.length}</div><div class="adb-summary-label">Total Users</div></div>
+          <div class="adb-summary-card"><div class="adb-summary-num">${rows.reduce((s,r)=>s+Number(r.edit_count||0),0)}</div><div class="adb-summary-label">Total Edits</div></div>
+          <div class="adb-summary-card"><div class="adb-summary-num">${rows.reduce((s,r)=>s+Number(r.login_count||0),0)}</div><div class="adb-summary-label">Total Logins</div></div>
+          <div class="adb-summary-card"><div class="adb-summary-num">${rows.reduce((s,r)=>s+Number(r.contact_count||0),0)}</div><div class="adb-summary-label">Contacts Received</div></div>
+        </div>`;
+      const rows_html = rows.map(r => `
+        <tr>
+          <td class="mono">${escH(r.email)}</td>
+          <td class="mono"><a href="/p/${escH(r.slug)}" target="_blank" style="color:hsl(224 76% 55%);text-decoration:none">${escH(r.slug)}</a></td>
+          <td class="muted">${escH(r.created_at||'—')}</td>
+          <td class="adb-stat">${r.edit_count||0}</td>
+          <td class="muted">${escH(r.last_edit||'never')}</td>
+          <td class="adb-stat">${r.login_count||0}</td>
+          <td class="muted">${escH(r.last_login||'never')}</td>
+          <td class="adb-stat">${r.contact_count||0}</td>
+        </tr>`).join('');
+      return summary + `<table class="adb-table"><thead><tr>
+        <th>Email</th><th>Slug / Link</th><th>Registered</th>
+        <th>Edits</th><th>Last Edit</th><th>Logins</th><th>Last Login</th><th>Contacts</th>
+      </tr></thead><tbody>${rows_html}</tbody></table>`;
+    }
+
+    function renderContacts(rows) {
+      if (!rows.length) return '<p class="adb-empty">No contact submissions yet.</p>';
+      const rows_html = rows.map(r => `
+        <tr>
+          <td class="mono">${escH(r.user_slug)}</td>
+          <td>${escH(r.name)}</td>
+          <td class="mono"><a href="mailto:${escH(r.email)}" style="color:hsl(224 76% 55%);text-decoration:none">${escH(r.email)}</a></td>
+          <td class="adb-msg-cell">${escH(r.message)}</td>
+          <td class="muted">${escH(r.created_at)}</td>
+        </tr>`).join('');
+      return `<table class="adb-table"><thead><tr>
+        <th>Portfolio</th><th>From</th><th>Email</th><th>Message</th><th>Sent At</th>
+      </tr></thead><tbody>${rows_html}</tbody></table>`;
+    }
+
+    function renderActivity(rows) {
+      if (!rows.length) return '<p class="adb-empty">No activity recorded yet.</p>';
+      const counts = rows.reduce((acc,r) => { acc[r.event_type]=(acc[r.event_type]||0)+1; return acc; }, {});
+      const summary = `
+        <div class="adb-summary">
+          <div class="adb-summary-card"><div class="adb-summary-num">${counts.register||0}</div><div class="adb-summary-label">Registrations</div></div>
+          <div class="adb-summary-card"><div class="adb-summary-num">${counts.login||0}</div><div class="adb-summary-label">Logins</div></div>
+          <div class="adb-summary-card"><div class="adb-summary-num">${counts.edit||0}</div><div class="adb-summary-label">Portfolio Saves</div></div>
+        </div>`;
+      const rows_html = rows.map(r => `
+        <tr>
+          <td>${adbBadge(r.event_type)}</td>
+          <td class="mono">${escH(r.user_email||'—')}</td>
+          <td class="mono">${escH(r.user_slug||'—')}</td>
+          <td class="muted">${escH(r.created_at)}</td>
+        </tr>`).join('');
+      return summary + `<table class="adb-table"><thead><tr>
+        <th>Event</th><th>Email</th><th>Slug</th><th>Time</th>
+      </tr></thead><tbody>${rows_html}</tbody></table>`;
+    }
+
+    async function adbLoadTab(tab) {
+      adbActiveTab = tab;
+      document.querySelectorAll('.adb-tab').forEach(b => b.classList.toggle('active', b.dataset.adbTab === tab));
+      if (adbCache[tab]) { adbBody.innerHTML = adbCache[tab]; return; }
+      adbBody.innerHTML = '<p class="adb-loading">Loading…</p>';
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      try {
+        const res  = await fetch(`/api/admin/db/${tab}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const rows = await res.json();
+        let html = '';
+        if (tab === 'users')    html = renderUsers(rows);
+        if (tab === 'contacts') html = renderContacts(rows);
+        if (tab === 'activity') html = renderActivity(rows);
+        adbCache[tab] = html;
+        adbBody.innerHTML = html;
+      } catch { adbBody.innerHTML = '<p class="adb-empty">Failed to load data.</p>'; }
+    }
+
+    adbDbBtn.addEventListener('click', () => {
+      adbCache = {}; // always refresh
+      adbOverlay.classList.add('open');
+      adbLoadTab(adbActiveTab);
+    });
+    adbClose.addEventListener('click', () => adbOverlay.classList.remove('open'));
+    adbOverlay.addEventListener('click', e => { if (e.target === adbOverlay) adbOverlay.classList.remove('open'); });
+    document.querySelectorAll('.adb-tab').forEach(btn => {
+      btn.addEventListener('click', () => adbLoadTab(btn.dataset.adbTab));
+    });
+
   } // end if (!USER_SLUG)
 
   /* ── Expose full editing API so user portfolios get identical edit power ── */
