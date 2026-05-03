@@ -273,3 +273,103 @@ async function sendChatMessage() {
 
 chatSend.addEventListener('click', sendChatMessage);
 chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+
+/* ─── Admin CMS ─── */
+(async function initAdmin() {
+  const TOKEN_KEY = 'admin-token';
+
+  // Load saved content overrides
+  try {
+    const res = await fetch('/api/admin/content');
+    if (res.ok) {
+      const data = await res.json();
+      Object.entries(data).forEach(([key, val]) => {
+        const el = document.querySelector(`[data-editable="${key}"]`);
+        if (el) el.innerHTML = val;
+      });
+    }
+  } catch {}
+
+  const adminLoginBtn   = document.getElementById('admin-login-btn');
+  const adminModal      = document.getElementById('admin-modal');
+  const adminModalClose = document.getElementById('admin-modal-close');
+  const adminLoginForm  = document.getElementById('admin-login-form');
+  const adminLoginError = document.getElementById('admin-login-error');
+  const adminToolbar    = document.getElementById('admin-toolbar');
+  const adminSaveBtn    = document.getElementById('admin-save-btn');
+  const adminLogoutBtn  = document.getElementById('admin-logout-btn');
+
+  function enterAdminMode() {
+    document.body.classList.add('admin-mode');
+    document.querySelectorAll('[data-editable]').forEach(el => {
+      el.contentEditable = 'true';
+      el.spellcheck = false;
+    });
+    adminToolbar.classList.add('visible');
+    adminLoginBtn.style.display = 'none';
+  }
+
+  function exitAdminMode() {
+    document.body.classList.remove('admin-mode');
+    document.querySelectorAll('[data-editable]').forEach(el => {
+      el.contentEditable = 'false';
+    });
+    adminToolbar.classList.remove('visible');
+    adminLoginBtn.style.display = '';
+    sessionStorage.removeItem(TOKEN_KEY);
+  }
+
+  // Restore session
+  if (sessionStorage.getItem(TOKEN_KEY)) enterAdminMode();
+
+  adminLoginBtn.addEventListener('click', () => adminModal.classList.add('open'));
+  adminModalClose.addEventListener('click', () => adminModal.classList.remove('open'));
+  adminModal.addEventListener('click', e => { if (e.target === adminModal) adminModal.classList.remove('open'); });
+
+  adminLoginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    adminLoginError.textContent = '';
+    const username = document.getElementById('admin-username').value.trim();
+    const password = document.getElementById('admin-password').value;
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { adminLoginError.textContent = data.error || 'Invalid credentials.'; return; }
+      sessionStorage.setItem(TOKEN_KEY, data.token);
+      adminModal.classList.remove('open');
+      adminLoginForm.reset();
+      enterAdminMode();
+    } catch { adminLoginError.textContent = 'Connection error. Try again.'; }
+  });
+
+  adminSaveBtn.addEventListener('click', async () => {
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    const content = {};
+    document.querySelectorAll('[data-editable]').forEach(el => {
+      content[el.dataset.editable] = el.innerHTML;
+    });
+    const orig = adminSaveBtn.textContent;
+    adminSaveBtn.textContent = 'Saving…';
+    adminSaveBtn.disabled = true;
+    try {
+      const res = await fetch('/api/admin/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(content),
+      });
+      adminSaveBtn.textContent = res.ok ? '✓ Saved & Live!' : 'Save Failed';
+    } catch { adminSaveBtn.textContent = 'Save Failed'; }
+    setTimeout(() => { adminSaveBtn.textContent = orig; adminSaveBtn.disabled = false; }, 2200);
+  });
+
+  adminLogoutBtn.addEventListener('click', async () => {
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    if (token) await fetch('/api/admin/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }).catch(() => {});
+    exitAdminMode();
+  });
+})();

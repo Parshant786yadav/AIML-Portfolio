@@ -597,3 +597,90 @@ body {
   .exp-right { text-align: left; }
   .project-footer { flex-direction: column; align-items: flex-start; }
 }
+
+/* ─── Admin Mode ─── */
+.admin-toolbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
+  background: hsl(0 0% 3%); border-bottom: 1px solid hsl(142 71% 45% / 0.35);
+  padding: 9px 20px; display: none; align-items: center;
+  justify-content: space-between; gap: 12px;
+}
+.admin-toolbar.visible { display: flex; }
+.admin-toolbar-info {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: hsl(142 71% 45%); display: flex; align-items: center; gap: 6px;
+}
+.admin-toolbar-actions { display: flex; gap: 8px; align-items: center; }
+.admin-save-btn {
+  padding: 6px 16px; border-radius: 6px;
+  background: hsl(142 71% 45%); color: hsl(0 0% 4%);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  border: none; cursor: pointer; transition: opacity 0.15s;
+}
+.admin-save-btn:hover { opacity: 0.85; }
+.admin-save-btn:disabled { opacity: 0.5; cursor: default; }
+.admin-logout-btn {
+  padding: 6px 12px; border-radius: 6px; background: none;
+  color: var(--muted-fg); font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  border: 1px solid var(--border); cursor: pointer; transition: color 0.15s;
+}
+.admin-logout-btn:hover { color: var(--fg); }
+body.admin-mode #navbar { top: 41px; }
+body.admin-mode { padding-top: 41px; }
+body.admin-mode [data-editable] {
+  outline: 1px dashed hsl(142 71% 45% / 0.4); outline-offset: 2px;
+  border-radius: 3px; cursor: text; min-height: 1em;
+}
+body.admin-mode [data-editable]:hover { outline-color: hsl(142 71% 45% / 0.7); background: hsl(142 71% 45% / 0.03); }
+body.admin-mode [data-editable]:focus { outline: 1px solid hsl(142 71% 45%); background: hsl(142 71% 45% / 0.05); }
+.admin-login-btn {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--muted-fg); background: none; border: none; cursor: pointer;
+  opacity: 0.35; transition: opacity 0.2s, color 0.15s;
+}
+.admin-login-btn:hover { opacity: 1; color: var(--fg); }
+.footer { display: flex; align-items: center; justify-content: space-between; }
+.admin-modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: hsl(0 0% 0% / 0.65); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.admin-modal-overlay.open { display: flex; }
+.admin-modal {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 12px; padding: 28px; width: 100%; max-width: 320px;
+}
+.admin-modal-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+}
+.admin-modal-title {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--fg);
+}
+.admin-modal-close {
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; border: 1px solid var(--border); background: none;
+  cursor: pointer; color: var(--muted-fg); font-size: 14px; transition: color 0.15s;
+}
+.admin-modal-close:hover { color: var(--fg); }
+.admin-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.admin-field label {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted-fg);
+}
+.admin-field input {
+  padding: 8px 11px; border-radius: 6px; border: 1px solid var(--border);
+  background: hsl(0 0% 6%); color: var(--fg);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  outline: none; transition: border-color 0.15s;
+}
+.admin-field input:focus { border-color: var(--primary); }
+.admin-login-error {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: hsl(0 75% 55%); margin-bottom: 12px; min-height: 14px;
+}
+.admin-login-submit {
+  width: 100%; padding: 9px; border-radius: 6px;
+  background: var(--primary); color: hsl(0 0% 4%);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  border: none; cursor: pointer; transition: opacity 0.15s;
+}
+.admin-login-submit:hover { opacity: 0.85; }
