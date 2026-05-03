@@ -391,24 +391,6 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
       Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
         if (data[key]) { const el = document.querySelector(sel); if (el) el.innerHTML = data[key]; }
       });
-      // Ensure each project card has a preview image; apply saved custom images
-      document.querySelectorAll('.projects-list .project-card').forEach((card, i) => {
-        let preview = card.querySelector('.project-preview');
-        if (!preview) {
-          preview = document.createElement('img');
-          preview.className = 'project-preview';
-          preview.alt = 'Project preview';
-          preview.loading = 'lazy';
-          card.appendChild(preview);
-        }
-        preview.dataset.defaultSrc = `/proj-${i}.png`;
-        if (data[`proj-img-${i}`]) {
-          preview.src = data[`proj-img-${i}`];
-          preview.dataset.customSrc = data[`proj-img-${i}`];
-        } else if (!preview.src || preview.src === window.location.href) {
-          preview.src = `/proj-${i}.png`;
-        }
-      });
       // Re-observe bar fills after lc-card innerHTML may have been replaced
       document.querySelectorAll('.lc-bar-fill').forEach(el => barObserver.observe(el));
       if (data['profile-photo']) {
@@ -640,8 +622,7 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
       <div class="project-footer">
         <div class="tags"><span class="tag">Tech</span></div>
         <span class="project-metric mono" contenteditable="true" spellcheck="false">Key metric or outcome</span>
-      </div>
-      <img class="project-preview" src="" alt="Project preview" loading="lazy">`;
+      </div>`;
     return el;
   }
 
@@ -854,53 +835,18 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     /* Projects */
     const projList = document.querySelector('.projects-list');
     if (projList) {
-      function injectProjImgUpload(card) {
-        if (card.querySelector('.admin-proj-img-btn')) return;
-        const preview = card.querySelector('.project-preview');
-        const lbl = document.createElement('label');
-        lbl.className = `admin-proj-img-btn ${AC}`;
-        if (preview?.dataset.customSrc) lbl.classList.add('has-img');
-        lbl.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ${preview?.dataset.customSrc ? '✓ Preview set' : 'Set Preview'}`;
-        const fi = document.createElement('input');
-        fi.type = 'file'; fi.accept = 'image/*'; fi.style.display = 'none';
-        fi.addEventListener('change', e => {
-          const file = e.target.files[0]; if (!file) return;
-          const reader = new FileReader();
-          reader.onload = ev => {
-            const img = new Image();
-            img.onload = () => {
-              const maxW = 800, scale = Math.min(1, maxW / img.naturalWidth);
-              const canvas = document.createElement('canvas');
-              canvas.width  = Math.round(img.naturalWidth  * scale);
-              canvas.height = Math.round(img.naturalHeight * scale);
-              canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.78);
-              if (preview) { preview.src = dataUrl; preview.dataset.customSrc = dataUrl; }
-              lbl.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ✓ Preview set`;
-              lbl.classList.add('has-img'); lbl.appendChild(fi);
-            };
-            img.src = ev.target.result;
-          };
-          reader.readAsDataURL(file); fi.value = '';
-        });
-        lbl.appendChild(fi);
-        card.appendChild(lbl);
-      }
-
       projList.querySelectorAll(':scope > .project-card').forEach(card => {
         card.style.position = 'relative';
         if (!card.querySelector('.admin-delete-btn')) card.appendChild(mkDelete(card, 'Remove project'));
         card.querySelectorAll('.project-name,.project-badge,.project-subtitle,.project-desc,.project-metric').forEach(editable);
         injectTagControls(card.querySelector('.tags'));
         injectProjectLinkControls(card);
-        injectProjImgUpload(card);
       });
       if (!projList.querySelector('.admin-add-btn')) projList.appendChild(mkAdd('Add Project', () => {
         const card = makeProjCard(); card.style.position = 'relative';
         card.appendChild(mkDelete(card, 'Remove project'));
         injectTagControls(card.querySelector('.tags'));
         injectProjectLinkControls(card);
-        injectProjImgUpload(card);
         projList.insertBefore(card, projList.querySelector('.admin-add-btn'));
         card.querySelector('[contenteditable]')?.focus();
       }));
@@ -1151,12 +1097,6 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     const resume = resumeDataUrl || loadedResumeUrl;
     if (resume) content['resume-pdf'] = resume;
 
-    // Project preview images — save as separate keys, reset img src to default in HTML
-    document.querySelectorAll('.projects-list .project-card').forEach((card, i) => {
-      const preview = card.querySelector('.project-preview');
-      if (preview?.dataset.customSrc) content[`proj-img-${i}`] = preview.dataset.customSrc;
-    });
-
     // List containers — clone DOM, strip admin UI, save innerHTML
     Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
       const el = document.querySelector(sel); if (!el) return;
@@ -1167,13 +1107,6 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
         x.style.removeProperty('position');
         if (!x.getAttribute('style')?.trim()) x.removeAttribute('style');
       });
-      // Reset preview img src to small default path (custom image saved separately above)
-      if (key === 'projects-list') {
-        clone.querySelectorAll('.project-preview').forEach((img, i) => {
-          img.src = `/proj-${i}.png`;
-          img.removeAttribute('data-custom-src');
-        });
-      }
       content[key] = clone.innerHTML;
     });
 
