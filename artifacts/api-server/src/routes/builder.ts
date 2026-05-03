@@ -459,305 +459,574 @@ function renderTemplate(d: any, t: number): string {
   if (t === 3) return template3(d);
   if (t >= 4 && t <= 15) return factoryTemplate(d, THEME_CFGS[t]);
   return template1(d);
+
 }
 
-interface ThemeCfg {
-  bg: string; s: string; b: string; fg: string; mu: string; ac: string;
-  font: string; mono: string; gf: string;
-  tBg: string; tFg: string; tBd: string;
-  avBg: string; avFg: string;
-  extra?: string;
-}
-const THEME_CFGS: Record<number, ThemeCfg> = {
-  4: { bg:'#060e1c',s:'#0d1f38',b:'#1e3550',fg:'#deeeff',mu:'#5580a0',ac:'#38bdf8',
-    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
-    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
-    tBg:'rgba(56,189,248,.08)',tFg:'#38bdf8',tBd:'rgba(56,189,248,.2)',avBg:'#38bdf8',avFg:'#000' },
-  5: { bg:'#100d05',s:'#1c1708',b:'#2e2610',fg:'#f0e6c8',mu:'#7a6840',ac:'#f59e0b',
-    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
-    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
-    tBg:'rgba(245,158,11,.08)',tFg:'#f59e0b',tBd:'rgba(245,158,11,.2)',avBg:'#f59e0b',avFg:'#000' },
-  6: { bg:'#000',s:'#080808',b:'#1a2a1a',fg:'#00ff41',mu:'#006820',ac:'#00ff41',
-    font:"'JetBrains Mono',monospace",mono:"'JetBrains Mono',monospace",
-    gf:'family=JetBrains+Mono:wght@400;500;700',
-    tBg:'rgba(0,255,65,.08)',tFg:'#00ff41',tBd:'rgba(0,255,65,.2)',avBg:'#001a08',avFg:'#00ff41',
-    extra:`body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.05) 2px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:9999}
-.hn{text-shadow:0 0 20px rgba(0,255,65,.5)}.hero{border-bottom-color:#1a2a1a}
-.av{border-radius:2px;border:1px solid #00ff41}.proj-card,.skill-tag{border-radius:2px}` },
-  7: { bg:'#ffffff',s:'#f5f5f5',b:'#e0e0e0',fg:'#0a0a0a',mu:'#666',ac:'#0a0a0a',
-    font:"'Inter',sans-serif",mono:"'Inter',sans-serif",gf:'family=Inter:wght@400;500;600;700',
-    tBg:'#ebebeb',tFg:'#333',tBd:'#d0d0d0',avBg:'#0a0a0a',avFg:'#fff',
-    extra:`.proj-card{box-shadow:0 1px 4px rgba(0,0,0,.08)}.soc a,.skill-tag{border-radius:4px}` },
-  8: { bg:'#fdf4ff',s:'#fff',b:'#e8d0f5',fg:'#2d1b4e',mu:'#8a6aab',ac:'#9333ea',
-    font:"'Inter',sans-serif",mono:"'Inter',sans-serif",gf:'family=Inter:wght@400;500;600;700',
-    tBg:'rgba(147,51,234,.08)',tFg:'#9333ea',tBd:'rgba(147,51,234,.2)',avBg:'#9333ea',avFg:'#fff',
-    extra:`.av{background:linear-gradient(135deg,#9333ea,#ec4899)!important}
-.proj-card{box-shadow:0 2px 12px rgba(147,51,234,.07)}.skill-tag,.soc a{border-radius:20px}` },
-  9: { bg:'#fffbf2',s:'#fff9ec',b:'#e0d8c0',fg:'#1a1206',mu:'#7a6a50',ac:'#c2410c',
-    font:"Georgia,'Times New Roman',serif",mono:"'Courier New',monospace",gf:'',
-    tBg:'rgba(194,65,12,.06)',tFg:'#c2410c',tBd:'rgba(194,65,12,.18)',avBg:'#c2410c',avFg:'#fff',
-    extra:`.hn{font-size:30px;letter-spacing:-.02em}.sl{letter-spacing:.18em}
-.proj-card{border-left:3px solid #c2410c;border-top:none;border-right:none;border-bottom:none;background:transparent;border-radius:0;padding-left:18px}
-.av{border-radius:4px;font-family:Georgia,serif}` },
-  10: { bg:'#0f0f23',s:'rgba(255,255,255,0.05)',b:'rgba(255,255,255,0.1)',fg:'#ffffff',mu:'#9090c0',ac:'#818cf8',
-    font:"'Inter',sans-serif",mono:"'Inter',sans-serif",gf:'family=Inter:wght@400;500;600;700',
-    tBg:'rgba(129,140,248,.08)',tFg:'#818cf8',tBd:'rgba(129,140,248,.2)',avBg:'#818cf8',avFg:'#fff',
-    extra:`body{background-image:radial-gradient(ellipse at top left,rgba(129,140,248,.15) 0%,transparent 50%),radial-gradient(ellipse at bottom right,rgba(192,132,252,.1) 0%,transparent 50%)}
-.av{background:linear-gradient(135deg,#818cf8,#c084fc)!important}
-.proj-card,.soc a,.skill-tag{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.hero{border-bottom-color:rgba(255,255,255,.1)}.proj-card{border-radius:16px}.soc a,.skill-tag{border-radius:20px}` },
-  11: { bg:'#050f08',s:'#0b1a0e',b:'#153020',fg:'#c8f5d8',mu:'#4a7a5a',ac:'#4ade80',
-    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
-    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
-    tBg:'rgba(74,222,128,.07)',tFg:'#4ade80',tBd:'rgba(74,222,128,.18)',avBg:'#153020',avFg:'#4ade80' },
-  12: { bg:'#0f0505',s:'#1c0a0a',b:'#3a1515',fg:'#f5e8e8',mu:'#8a5050',ac:'#ef4444',
-    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
-    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
-    tBg:'rgba(239,68,68,.07)',tFg:'#ef4444',tBd:'rgba(239,68,68,.2)',avBg:'#ef4444',avFg:'#fff' },
-  13: { bg:'#030014',s:'#08002a',b:'rgba(232,121,249,.12)',fg:'#e8e0ff',mu:'#7060aa',ac:'#e879f9',
-    font:"'Inter',sans-serif",mono:"'JetBrains Mono',monospace",
-    gf:'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500',
-    tBg:'rgba(232,121,249,.08)',tFg:'#e879f9',tBd:'rgba(232,121,249,.2)',avBg:'#e879f9',avFg:'#000',
-    extra:`.av{background:linear-gradient(135deg,#9333ea,#e879f9)!important}
-.hn{text-shadow:0 0 24px rgba(232,121,249,.35)}.proj-card{box-shadow:0 0 20px rgba(232,121,249,.06)}` },
-  14: { bg:'#faf8f2',s:'#fff',b:'#d0c8b0',fg:'#1a1408',mu:'#6a5a40',ac:'#1e40af',
-    font:"Georgia,'Times New Roman',serif",mono:"'Courier New',monospace",gf:'',
-    tBg:'rgba(30,64,175,.06)',tFg:'#1e40af',tBd:'rgba(30,64,175,.18)',avBg:'#1e40af',avFg:'#fff',
-    extra:`.hn{font-size:28px}.proj-card{box-shadow:0 1px 3px rgba(0,0,0,.07);border-radius:4px}
-.skill-tag,.soc a,.av{border-radius:4px}` },
-  15: { bg:'#ffffff',s:'#f0f0f0',b:'#000000',fg:'#000000',mu:'#444',ac:'#dc2626',
-    font:"'Arial Black','Impact',sans-serif",mono:"'Courier New',monospace",gf:'',
-    tBg:'#000',tFg:'#fff',tBd:'#000',avBg:'#dc2626',avFg:'#fff',
-    extra:`*{border-radius:0!important}.hn{font-size:32px;text-transform:uppercase;letter-spacing:-.02em}
-.ht{color:var(--ac);font-family:'Courier New',monospace}.hero{border-bottom:4px solid #000;padding:40px 0 32px}
-.sl{border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:20px;font-family:'Courier New',monospace}
-.proj-card{border:2px solid #000;background:#fff;box-shadow:4px 4px 0 #000}.soc a{border:2px solid #000;font-family:'Courier New',monospace}
-.soc a:hover{background:#000;color:#fff}.skill-tag{border:2px solid #000;font-family:'Courier New',monospace}.av{border:3px solid #dc2626}` },
-};
+/* ── Shared helpers (Parshant design) ── */
 
-function factoryTemplate(d: any, cfg: ThemeCfg): string {
-  const init = (d.name || "?")[0].toUpperCase();
-  const soc = socialLinks(d, cfg.ac);
-  const loc = d.location ? `<div style="font-family:${cfg.mono};font-size:12px;color:${cfg.mu};margin-top:4px">📍 ${d.location}</div>` : "";
-  const gfLink = cfg.gf ? `<link href="https://fonts.googleapis.com/css2?${cfg.gf}&display=swap" rel="stylesheet">` : "";
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${d.name || "Portfolio"}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-${gfLink}
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:${cfg.bg};--s:${cfg.s};--b:${cfg.b};--fg:${cfg.fg};--mu:${cfg.mu};--ac:${cfg.ac}}
-body{background:var(--bg);color:var(--fg);font-family:${cfg.font};line-height:1.65}
-a{color:var(--ac);text-decoration:none}a:hover{text-decoration:underline}
-.wrap{max-width:760px;margin:0 auto;padding:0 24px}
-.hero{padding:52px 0 44px;border-bottom:1px solid var(--b)}
-.hero-inner{display:flex;gap:28px;align-items:flex-start}
-.av{width:70px;height:70px;border-radius:50%;background:${cfg.avBg};color:${cfg.avFg};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;flex-shrink:0}
-.hn{font-size:26px;font-weight:700;margin-bottom:4px}
-.ht{font-family:${cfg.mono};font-size:13px;color:var(--ac);margin-bottom:6px}
-.hb{font-size:14px;color:var(--mu);line-height:1.7;margin-top:10px}
-.soc{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
-.soc a{font-size:12px;font-family:${cfg.mono};padding:4px 12px;border:1px solid var(--b);border-radius:6px;color:var(--fg);transition:.15s}
-.soc a:hover{border-color:var(--ac);color:var(--ac);text-decoration:none}
-.main{padding:44px 0}.section{margin-bottom:44px}
-.sl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-family:${cfg.mono};color:var(--mu);margin-bottom:20px}
-.exp-item{display:flex;gap:16px;margin-bottom:24px}
-.exp-dot{width:8px;height:8px;border-radius:50%;background:var(--ac);margin-top:7px;flex-shrink:0}
-.exp-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
-.exp-head strong{font-size:15px;font-weight:600}.period{font-size:12px;font-family:${cfg.mono};color:var(--mu)}
-.company{font-size:12px;color:var(--ac);font-family:${cfg.mono};margin:2px 0 6px}.exp-body p{font-size:14px;color:var(--mu);line-height:1.65}
-.proj-card{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:18px;margin-bottom:14px}
-.proj-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.proj-head h3{font-size:15px;font-weight:600}.proj-links{display:flex;gap:10px}
-.proj-links a{font-size:12px;font-family:${cfg.mono};color:var(--ac)}
-.proj-card p{font-size:14px;color:var(--mu);line-height:1.65;margin-bottom:10px}
-.tags,.skills-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.tag{font-size:11px;font-family:${cfg.mono};padding:2px 8px;background:${cfg.tBg};color:${cfg.tFg};border:1px solid ${cfg.tBd};border-radius:4px}
-.skill-tag{font-size:12px;font-family:${cfg.mono};padding:5px 12px;background:var(--s);border:1px solid var(--b);border-radius:6px;color:var(--fg)}
-.cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
-.cert-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px}
-.cert-name{font-size:13px;font-weight:600;margin-bottom:4px}.cert-meta{font-size:11px;color:var(--mu);font-family:${cfg.mono};margin-bottom:6px}
-.cert-link{font-size:11px;color:var(--ac);font-family:${cfg.mono}}
-.lc-wrap{display:flex;flex-direction:column;gap:12px}.lc-username{font-size:12px;font-family:${cfg.mono};color:var(--ac)}
-.lc-stats{display:flex;gap:10px;flex-wrap:wrap}
-.lc-stat{display:flex;flex-direction:column;align-items:center;background:var(--s);border:1px solid var(--b);border-radius:8px;padding:10px 14px;min-width:65px}
-.lc-val{font-size:20px;font-weight:700;font-family:${cfg.mono}}.lc-lbl{font-size:10px;color:var(--mu);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
-.lc-hard .lc-val{color:#ef4444}.lc-med .lc-val{color:#f59e0b}.lc-easy .lc-val{color:#22c55e}
-.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-@media(max-width:500px){.cf-row{grid-template-columns:1fr}}
-.cf-input{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--fg);font-family:inherit;width:100%;transition:border-color .15s}
-.cf-input:focus{outline:none;border-color:var(--ac)}.cf-msg{resize:vertical;margin-bottom:10px;display:block}
-.cf-btn{background:var(--ac);color:${cfg.avFg};border:none;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer}.cf-btn:hover{opacity:.9}
-.cf-status{font-size:13px;margin-top:10px}
-${cfg.extra || ""}
-</style>
-</head>
-<body>
-<div class="wrap">
-<div class="hero"><div class="hero-inner">
-  <div class="av">${init}</div>
-  <div>
-    <div class="hn">${d.name || ""}</div>
-    <div class="ht">${d.title || ""}</div>${loc}
-    <p class="hb">${d.bio || ""}</p>
-    <div class="soc">${soc}</div>
-  </div>
-</div></div>
-<div class="main">
-${d.experience?.length ? `<div class="section"><div class="sl">Work Experience.</div>${expHtml(d.experience)}</div>` : ""}
-${d.projects?.length ? `<div class="section"><div class="sl">Projects.</div>${projHtml(d.projects, cfg.ac)}</div>` : ""}
-${d.skills?.length ? `<div class="section"><div class="sl">Skills.</div><div class="skills-wrap">${skillsHtml(d.skills)}</div></div>` : ""}
-${d.education?.length ? `<div class="section"><div class="sl">Education.</div>${educationHtml(d.education)}</div>` : ""}
-${d.certifications?.length ? `<div class="section"><div class="sl">Certifications.</div>${certificationsHtml(d.certifications)}</div>` : ""}
-${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><div class="sl">LeetCode.</div>${leetcodeHtml(d.leetcode)}</div>` : ""}
-<div class="section"><div class="sl">Contact.</div>${contactFormSection(d.username)}</div>
-${createBanner(d.username)}
-</div></div>
-</body></html>`;
+function esc(s: any): string {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function expHtml(exp: any[]): string {
-  if (!exp?.length) return "";
-  return exp.map(e => `
-    <div class="exp-item">
-      <div class="exp-dot"></div>
-      <div class="exp-body">
-        <div class="exp-head"><strong>${e.role}</strong><span class="period">${e.period || ""}</span></div>
-        <div class="company">${e.company || ""}</div>
-        <p>${e.description || ""}</p>
-        <div class="tags">${(e.skills || []).map((s: string) => `<span class="tag">${s}</span>`).join("")}</div>
-      </div>
-    </div>`).join("");
+function letterColor(str: string): { bg: string; color: string; border: string } {
+  let hash = 0;
+  const s = str || 'A';
+  for (let i = 0; i < s.length; i++) hash = (s.charCodeAt(i) + ((hash << 5) - hash)) | 0;
+  const hues = [142, 220, 40, 280, 0, 180, 60, 320];
+  const hue = hues[Math.abs(hash) % hues.length];
+  return { bg: `hsl(${hue} 71% 45% / 0.07)`, color: `hsl(${hue} 71% 45%)`, border: `hsl(${hue} 71% 45% / 0.15)` };
 }
-function projHtml(projects: any[], accent: string): string {
-  if (!projects?.length) return "";
-  return projects.map(p => `
-    <div class="proj-card">
-      <div class="proj-head"><h3>${p.name}</h3>
-        <div class="proj-links">
-          ${p.githubUrl ? `<a href="${p.githubUrl}" target="_blank" rel="noopener">GitHub ↗</a>` : ""}
-          ${p.liveUrl ? `<a href="${p.liveUrl}" target="_blank" rel="noopener">Live ↗</a>` : ""}
-        </div>
-      </div>
-      <p>${p.description || ""}</p>
-      <div class="tags">${(p.tags || []).map((s: string) => `<span class="tag">${s}</span>`).join("")}</div>
-    </div>`).join("");
-}
-function skillsHtml(skills: string[]): string {
-  if (!skills?.length) return "";
-  return skills.map(s => `<span class="skill-tag">${s}</span>`).join("");
-}
-function socialLinks(d: any, _accent: string): string {
+
+function socialLinks(d: any, _accent?: string): string {
+  const svgGh = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>`;
+  const svgLi = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>`;
+  const svgEm = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
+  const svgEx = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+  const svgWa = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>`;
+  const icons: Record<string,string> = { GitHub: svgGh, LinkedIn: svgLi, Email: svgEm, WhatsApp: svgWa };
   const items: string[] = [];
   if (Array.isArray(d.links)) {
     d.links.forEach((l: any) => {
       if (!l.url) return;
       const href = l.platform === 'Email' ? `mailto:${l.url.replace(/^mailto:/,'')}` : l.url;
-      items.push(`<a href="${href}" target="_blank" rel="noopener">${l.platform}</a>`);
+      const ico = icons[l.platform] || svgEx;
+      items.push(`<a href="${href}" target="_blank" rel="noopener" class="social-btn">${ico}${esc(l.platform)}</a>`);
     });
-    if (d.email && !d.links.find((l: any) => l.platform === 'Email')) items.push(`<a href="mailto:${d.email}">Email</a>`);
+    if (d.email && !d.links.find((l: any) => l.platform === 'Email'))
+      items.push(`<a href="mailto:${esc(d.email)}" class="social-btn">${svgEm}Email</a>`);
   } else if (d.links) {
-    if (d.links.github) items.push(`<a href="${d.links.github}" target="_blank">GitHub</a>`);
-    if (d.links.linkedin) items.push(`<a href="${d.links.linkedin}" target="_blank">LinkedIn</a>`);
-    if (d.links.website) items.push(`<a href="${d.links.website}" target="_blank">Website</a>`);
-    if (d.links.twitter) items.push(`<a href="${d.links.twitter}" target="_blank">Twitter</a>`);
-    if (d.email) items.push(`<a href="mailto:${d.email}">Email</a>`);
-  } else if (d.email) { items.push(`<a href="mailto:${d.email}">Email</a>`); }
+    if (d.links.github) items.push(`<a href="${esc(d.links.github)}" target="_blank" class="social-btn">${svgGh}GitHub</a>`);
+    if (d.links.linkedin) items.push(`<a href="${esc(d.links.linkedin)}" target="_blank" class="social-btn">${svgLi}LinkedIn</a>`);
+    if (d.links.website) items.push(`<a href="${esc(d.links.website)}" target="_blank" class="social-btn">${svgEx}Website</a>`);
+    if (d.links.twitter) items.push(`<a href="${esc(d.links.twitter)}" target="_blank" class="social-btn">${svgEx}Twitter</a>`);
+    if (d.email) items.push(`<a href="mailto:${esc(d.email)}" class="social-btn">${svgEm}Email</a>`);
+  } else if (d.email) {
+    items.push(`<a href="mailto:${esc(d.email)}" class="social-btn">${svgEm}Email</a>`);
+  }
   return items.join('');
 }
-function educationHtml(edu: any[]): string {
-  if (!edu?.length) return '';
-  return edu.map(e => `<div class="exp-item"><div class="exp-dot"></div><div class="exp-body">
-    <div class="exp-head"><strong>${e.degree || ''}${e.field ? ` in ${e.field}` : ''}</strong><span class="period">${e.period || ''}</span></div>
-    <div class="company">${e.institution || ''}${e.cgpa ? ` · ${e.cgpa}` : ''}</div>
-    ${e.description ? `<p>${e.description}</p>` : ''}</div></div>`).join('');
-}
-function certificationsHtml(certs: any[]): string {
-  if (!certs?.length) return '';
-  return `<div class="cert-grid">${certs.map(c => `<div class="cert-card"><div class="cert-name">${c.name || ''}</div><div class="cert-meta">${c.issuer || ''}${c.date ? ` · ${c.date}` : ''}</div>${c.url ? `<a href="${c.url}" target="_blank" class="cert-link">View ↗</a>` : ''}</div>`).join('')}</div>`;
-}
-function leetcodeHtml(lc: any): string {
-  if (!lc || (!lc.username && !lc.solved)) return '';
-  return `<div class="lc-wrap">${lc.username ? `<div class="lc-username">@${lc.username}</div>` : ''}<div class="lc-stats">${lc.solved ? `<div class="lc-stat"><span class="lc-val">${lc.solved}</span><span class="lc-lbl">Total</span></div>` : ''}${lc.hard ? `<div class="lc-stat lc-hard"><span class="lc-val">${lc.hard}</span><span class="lc-lbl">Hard</span></div>` : ''}${lc.medium ? `<div class="lc-stat lc-med"><span class="lc-val">${lc.medium}</span><span class="lc-lbl">Medium</span></div>` : ''}${lc.easy ? `<div class="lc-stat lc-easy"><span class="lc-val">${lc.easy}</span><span class="lc-lbl">Easy</span></div>` : ''}${lc.rating ? `<div class="lc-stat"><span class="lc-val">${lc.rating}</span><span class="lc-lbl">Rating</span></div>` : ''}</div></div>`;
-}
-function contactFormSection(username: string): string {
-  return `<div id="cf-wrap"><form id="cf" onsubmit="cfSubmit(event)"><div class="cf-row"><input type="text" name="cfn" placeholder="Your name" required class="cf-input" /><input type="email" name="cfe" placeholder="Your email" required class="cf-input" /></div><textarea name="cfm" rows="4" placeholder="Your message..." required class="cf-input cf-msg"></textarea><button type="submit" class="cf-btn">Send Message →</button></form><div id="cf-status" class="cf-status"></div></div>
-<script>async function cfSubmit(e){e.preventDefault();const f=e.target;const btn=f.querySelector('.cf-btn');btn.disabled=true;btn.textContent='Sending…';const s=document.getElementById('cf-status');try{const r=await fetch('/p/${username}/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.cfn.value,email:f.cfe.value,message:f.cfm.value})});if(r.ok){s.textContent='✓ Message sent!';s.style.color='#4ade80';f.reset();}else{s.textContent='✗ Failed to send.';s.style.color='#ef4444';}}catch{s.textContent='✗ Network error.';}finally{btn.disabled=false;btn.textContent='Send Message →';}}</script>`;
-}
-function createBanner(username: string): string {
-  return `<div style="text-align:center;padding:24px;border-top:1px solid rgba(128,128,128,0.12);margin-top:48px"><a href="/" style="font-size:12px;opacity:0.35;text-decoration:none;font-family:monospace">✦ built with parshant.portfolio — create yours</a></div>`;
+
+function pexpHtml(exp: any[]): string {
+  if (!exp?.length) return '';
+  return `<div class="exp-list">${exp.map(e => {
+    const lc = letterColor(e.company || e.role || 'X');
+    const letter = (e.company || e.role || 'X')[0].toUpperCase();
+    const tags = (e.skills || e.tags || []).map((s: string) => `<span class="tag">${esc(s)}</span>`).join('');
+    return `<div class="exp-item">
+      <div class="exp-letter" style="background:${lc.bg};color:${lc.color};border:1px solid ${lc.border}">${letter}</div>
+      <div class="exp-body">
+        <div class="exp-header">
+          <div>
+            <h3 class="exp-role">${esc(e.role || '')}</h3>
+            <span class="exp-company">@ ${esc(e.company || '')}</span>
+          </div>
+          <div class="exp-right">
+            <span class="exp-period mono">${esc(e.period || '')}</span>
+            ${e.location ? `<span class="exp-loc">${esc(e.location)}</span>` : ''}
+          </div>
+        </div>
+        <p class="exp-desc">${esc(e.description || '')}</p>
+        ${tags ? `<div class="tags">${tags}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
 }
 
-/* Template 1 – Dark Minimal (matches current portfolio) */
-function template1(d: any): string {
-  const acc = "hsl(142 71% 45%)";
+function pprojHtml(projects: any[]): string {
+  if (!projects?.length) return '';
+  const svgGh = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>`;
+  const svgEx = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+  return `<div class="projects-list">${projects.map(p => {
+    const tags = (p.tags || []).map((s: string) => `<span class="tag">${esc(s)}</span>`).join('');
+    return `<div class="project-card">
+      <div class="project-header">
+        <div>
+          <div class="project-title-row">
+            <h3 class="project-name">${esc(p.name || '')}</h3>
+          </div>
+        </div>
+        <div class="project-links">
+          ${p.githubUrl ? `<a href="${esc(p.githubUrl)}" target="_blank" rel="noopener" class="icon-link">${svgGh}</a>` : ''}
+          ${p.liveUrl ? `<a href="${esc(p.liveUrl)}" target="_blank" rel="noopener" class="icon-link">${svgEx}</a>` : ''}
+        </div>
+      </div>
+      <p class="project-desc">${esc(p.description || '')}</p>
+      ${tags ? `<div class="project-footer"><div class="tags">${tags}</div></div>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function pskillsHtml(skills: string[]): string {
+  if (!skills?.length) return '';
+  return `<div class="tags">${skills.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div>`;
+}
+
+function peducationHtml(edu: any[]): string {
+  if (!edu?.length) return '';
+  return `<div class="edu-list">${edu.map(e => `<div class="edu-item">
+    <div class="edu-left">
+      <h3 class="edu-degree">${esc(e.degree || '')}${e.field ? ` in ${esc(e.field)}` : ''}</h3>
+      <p class="edu-school">${esc(e.institution || '')}</p>
+    </div>
+    <div class="edu-right">
+      ${e.cgpa ? `<span class="edu-score mono primary-text">${esc(e.cgpa)}</span>` : ''}
+      <span class="edu-period mono">${esc(e.period || '')}</span>
+    </div>
+  </div>`).join('')}</div>`;
+}
+
+function pcertificationsHtml(certs: any[]): string {
+  if (!certs?.length) return '';
+  const svgArr = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+  return `<div class="cert-grid">${certs.map(c => {
+    const inner = `<div class="cert-top"><div><div class="cert-title">${esc(c.name || '')}</div><div class="cert-issuer">${esc(c.issuer || '')}${c.date ? ` · ${esc(c.date)}` : ''}</div></div><span class="cert-arrow">${svgArr}</span></div>`;
+    return c.url
+      ? `<a href="${esc(c.url)}" target="_blank" rel="noopener" class="cert-card">${inner}</a>`
+      : `<div class="cert-card">${inner}</div>`;
+  }).join('')}</div>`;
+}
+
+function pleetcodeHtml(lc: any, username: string): string {
+  if (!lc || (!lc.username && !lc.solved)) return '';
+  const svgEx = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+  const total = lc.solved || 0;
+  const easy  = lc.easy   || 0;
+  const med   = lc.medium || 0;
+  const hard  = lc.hard   || 0;
+  const maxVal = total || (easy + med + hard) || 1;
+  const ePct = Math.round((easy / maxVal) * 100);
+  const mPct = Math.round((med  / maxVal) * 100);
+  const hPct = Math.round((hard / maxVal) * 100);
+  const lcUrl = lc.username ? `https://leetcode.com/${encodeURIComponent(lc.username)}` : '#';
+  return `<div class="lc-card">
+    <div class="lc-header">
+      <div>
+        <div class="lc-username mono">${esc(lc.username || username)}</div>
+        <p class="lc-sub">Consistent problem solver — algorithms &amp; data structures</p>
+      </div>
+      ${lc.username ? `<a href="${lcUrl}" target="_blank" rel="noopener" class="lc-profile mono">Profile ${svgEx}</a>` : ''}
+    </div>
+    <div class="lc-stats">
+      ${total ? `<div class="lc-stat"><span class="lc-val mono" style="color:hsl(142 71% 45%)">${total}${total >= 100 ? '+' : ''}</span><span class="lc-label">Total Solved</span></div>` : ''}
+      ${easy  ? `<div class="lc-stat"><span class="lc-val mono" style="color:hsl(142 71% 55%)">${easy}${easy >= 10 ? '+' : ''}</span><span class="lc-label">Easy</span></div>` : ''}
+      ${med   ? `<div class="lc-stat"><span class="lc-val mono" style="color:hsl(38 90% 55%)">${med}${med >= 10 ? '+' : ''}</span><span class="lc-label">Medium</span></div>` : ''}
+      ${hard  ? `<div class="lc-stat"><span class="lc-val mono" style="color:hsl(0 75% 55%)">${hard}${hard >= 10 ? '+' : ''}</span><span class="lc-label">Hard</span></div>` : ''}
+    </div>
+    ${(easy || med || hard) ? `<div class="lc-bars">
+      ${easy ? `<div class="lc-bar-row"><span class="lc-bar-label mono">Easy</span><div class="lc-bar-track"><div class="lc-bar-fill" data-pct="${ePct}" style="background:hsl(142 71% 55%);width:${ePct}%"></div></div></div>` : ''}
+      ${med  ? `<div class="lc-bar-row"><span class="lc-bar-label mono">Medium</span><div class="lc-bar-track"><div class="lc-bar-fill" data-pct="${mPct}" style="background:hsl(38 90% 55%);width:${mPct}%"></div></div></div>` : ''}
+      ${hard ? `<div class="lc-bar-row"><span class="lc-bar-label mono">Hard</span><div class="lc-bar-track"><div class="lc-bar-fill" data-pct="${hPct}" style="background:hsl(0 75% 55%);width:${hPct}%"></div></div></div>` : ''}
+    </div>` : ''}
+  </div>`;
+}
+
+function pcontactForm(d: any): string {
+  const svgSend = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+  const svgMail = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
+  const emailHint = d.email ? `<span class="form-email-hint mono">${svgMail} ${esc(d.email)}</span>` : '';
+  return `<p class="contact-intro">Have a project, opportunity, or just want to connect?${d.email ? ` <a href="mailto:${esc(d.email)}" class="primary-link mono">${esc(d.email)}</a>` : ''}</p>
+<form id="contact-form" class="contact-form" onsubmit="pfSubmit(event)">
+  <div class="form-row">
+    <div class="form-group"><label class="form-label mono">name</label><input type="text" name="pfn" required placeholder="Your name" class="form-input mono" /></div>
+    <div class="form-group"><label class="form-label mono">email</label><input type="email" name="pfe" required placeholder="your@email.com" class="form-input mono" /></div>
+  </div>
+  <div class="form-group"><label class="form-label mono">message</label><textarea name="pfm" required rows="4" placeholder="What's on your mind..." class="form-input form-textarea mono"></textarea></div>
+  <div class="form-actions">
+    ${emailHint}
+    <button type="submit" class="submit-btn mono" id="pf-submit-btn">${svgSend}<span id="pf-submit-text">send message</span></button>
+  </div>
+</form>
+<div id="pf-toast" class="toast"></div>
+<script>
+async function pfSubmit(e){
+  e.preventDefault();
+  const f=e.target;const btn=document.getElementById('pf-submit-btn');const txt=document.getElementById('pf-submit-text');
+  btn.disabled=true;txt.textContent='sending…';
+  try{
+    const r=await fetch(window.location.pathname.split('/').slice(0,3).join('/')+'/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.pfn.value,email:f.pfe.value,message:f.pfm.value})});
+    const t=document.getElementById('pf-toast');
+    if(r.ok){t.textContent='✓ Message sent!';f.reset();}else{t.textContent='✗ Failed to send.';}
+    t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);
+  }catch{const t=document.getElementById('pf-toast');t.textContent='✗ Network error.';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+  finally{btn.disabled=false;txt.textContent='send message';}
+}
+</script>`;
+}
+
+function createBanner(_username: string): string {
+  return `<div style="text-align:center;padding:24px 20px;border-top:1px solid var(--border)"><a href="/" style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted-fg);opacity:0.4;text-decoration:none">✦ built with parshant.portfolio — create yours</a></div>`;
+}
+
+/* ── Parshant CSS (inlined for generated portfolios) ── */
+function parshantCSS(accentOverride?: { primary: string; primaryRing: string; primaryBorder: string; submitBg: string; dotDark?: string }): string {
+  const p = accentOverride;
+  return `
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --bg:hsl(0 0% 98%);--fg:hsl(0 0% 8%);--fg-80:hsl(0 0% 8% / 0.8);
+  --muted-fg:hsl(0 0% 44%);--muted-fg-60:hsl(0 0% 44% / 0.6);--muted-fg-40:hsl(0 0% 44% / 0.4);
+  --border:hsl(0 0% 88%);--border-40:hsl(0 0% 88% / 0.4);
+  --card:hsl(0 0% 100%);--card-50:hsl(0 0% 100% / 0.5);
+  --muted:hsl(0 0% 94%);--input:hsl(0 0% 92%);
+  --primary:${p?.primary || 'hsl(142 60% 35%)'};
+  --primary-ring:${p?.primaryRing || 'hsl(142 60% 35% / 0.2)'};
+  --primary-border:${p?.primaryBorder || 'hsl(142 60% 35% / 0.5)'};
+  --dot:hsl(0 0% 88%);--nav-blur:hsl(0 0% 98% / 0.9);
+  --tag-bg:hsl(0 0% 94%);--tag-fg:hsl(0 0% 44%);--tag-border:hsl(0 0% 88%);
+  --tag-green-bg:${p?.primary ? p.primary.replace(')','/0.1)').replace('hsl(','hsl(') : 'hsl(142 60% 35% / 0.1)'};
+  --tag-green-fg:${p?.primary || 'hsl(142 60% 35%)'};
+  --tag-green-border:${p?.primaryBorder || 'hsl(142 60% 35% / 0.25)'};
+  --submit-bg:${p?.submitBg || 'hsl(142 71% 45%)'};--submit-fg:hsl(0 0% 4%);
+}
+html.dark{
+  --bg:hsl(0 0% 4%);--fg:hsl(0 0% 92%);--fg-80:hsl(0 0% 92% / 0.8);
+  --muted-fg:hsl(0 0% 45%);--muted-fg-60:hsl(0 0% 45% / 0.6);--muted-fg-40:hsl(0 0% 45% / 0.4);
+  --border:hsl(0 0% 12%);--border-40:hsl(0 0% 12% / 0.4);
+  --card:hsl(0 0% 6%);--card-50:hsl(0 0% 6% / 0.5);
+  --muted:hsl(0 0% 10%);--input:hsl(0 0% 12%);
+  --primary:${p?.primary || 'hsl(142 71% 45%)'};
+  --primary-ring:${p?.primaryRing || 'hsl(142 71% 45% / 0.2)'};
+  --primary-border:${p?.primaryBorder || 'hsl(142 71% 45% / 0.5)'};
+  --dot:${p?.dotDark || 'hsl(0 0% 12%)'};--nav-blur:hsl(0 0% 4% / 0.9);
+  --tag-bg:hsl(0 0% 10%);--tag-fg:hsl(0 0% 45%);--tag-border:hsl(0 0% 12%);
+  --tag-green-bg:${p?.primary ? p.primary.replace(')','/0.1)').replace('hsl(','hsl(') : 'hsl(142 71% 45% / 0.1)'};
+  --tag-green-fg:${p?.primary || 'hsl(142 71% 55%)'};
+  --tag-green-border:${p?.primaryBorder || 'hsl(142 71% 45% / 0.25)'};
+  --submit-bg:${p?.submitBg || 'hsl(142 71% 45%)'};--submit-fg:hsl(0 0% 4%);
+}
+body{font-family:'Inter',sans-serif;background-color:var(--bg);color:var(--fg);
+  background-image:radial-gradient(circle,var(--dot) 1px,transparent 1px);background-size:24px 24px;
+  line-height:1.6;font-size:15px;-webkit-font-smoothing:antialiased;transition:background-color .2s,color .2s}
+.mono{font-family:'JetBrains Mono',monospace}
+.primary-text{color:var(--primary)}
+.muted-text{color:var(--muted-fg)}
+#scroll-progress{position:fixed;top:0;left:0;right:0;height:1px;background:var(--primary);
+  transform-origin:left center;transform:scaleX(0);z-index:9999;transition:transform .05s linear}
+#navbar{position:sticky;top:0;z-index:50;transition:background .2s,border-color .2s}
+#navbar.scrolled{background:var(--nav-blur);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:672px;margin:0 auto;padding:0 20px;height:48px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--fg);background:none;border:none;cursor:pointer;transition:color .15s;text-decoration:none}
+.nav-logo:hover{color:var(--primary)}
+.nav-desktop{display:flex;align-items:center;gap:24px}
+.nav-links{display:flex;align-items:center;gap:24px}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted-fg);background:none;border:none;cursor:pointer;transition:color .15s;text-decoration:none}
+.nav-link:hover{color:var(--fg)}
+.theme-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted-fg);transition:color .15s,background .15s;flex-shrink:0}
+.theme-btn:hover{color:var(--fg);background:var(--muted)}
+.nav-mobile-actions{display:none;align-items:center;gap:8px}
+.mobile-menu-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--muted-fg);transition:color .15s}
+.mobile-nav{display:none;border-bottom:1px solid var(--border);background:var(--bg)}
+.mobile-nav.open{display:block}
+.mobile-nav-inner{max-width:672px;margin:0 auto;padding:12px 20px;display:flex;flex-direction:column;gap:12px}
+.main-wrap{max-width:672px;margin:0 auto;padding:0 20px 80px}
+.section{padding:32px 0;border-top:1px solid var(--border)}
+.section-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;font-weight:400}
+.profile-section{padding-top:40px;padding-bottom:32px}
+.profile-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:24px}
+.avatar-wrap{position:relative;flex-shrink:0}
+.avatar{width:64px;height:64px;border-radius:50%;overflow:hidden;border:1px solid var(--border);background:var(--primary);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:hsl(0 0% 4%)}
+.online-dot{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:hsl(142 71% 45%);border:2px solid var(--bg)}
+.profile-info{flex:1;min-width:0}
+.profile-name{font-size:18px;font-weight:600;color:var(--fg);line-height:1.3}
+.profile-title{font-size:14px;color:var(--muted-fg);margin-top:2px}
+.profile-meta{display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap}
+.meta-pin{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted-fg)}
+.bio{font-size:14px;color:var(--fg-80);line-height:1.7;margin-bottom:24px}
+.social-links{display:flex;flex-wrap:wrap;gap:8px}
+.social-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted-fg);text-decoration:none;transition:color .15s,border-color .15s}
+.social-btn:hover{color:var(--fg)}
+.exp-list{display:flex;flex-direction:column;gap:4px}
+.exp-item{display:flex;gap:12px;padding:16px;border-radius:8px;border:1px solid transparent;transition:border-color .2s,background .2s}
+.exp-item:hover{border-color:var(--border);background:var(--card)}
+.exp-letter{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;flex-shrink:0;margin-top:2px}
+.exp-body{flex:1;min-width:0}
+.exp-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.exp-role{font-size:14px;font-weight:500;color:var(--fg)}
+.exp-company{font-size:12px;color:var(--muted-fg);display:inline-flex;align-items:center;gap:2px;margin-top:2px;transition:color .15s;text-decoration:none}
+.exp-company:hover{color:var(--primary)}
+.exp-right{text-align:right;flex-shrink:0}
+.exp-period{display:block;font-size:12px;color:var(--muted-fg)}
+.exp-loc{display:block;font-size:12px;color:var(--muted-fg-60);margin-top:2px}
+.exp-desc{font-size:12px;color:var(--muted-fg);line-height:1.65;margin-bottom:12px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500;background:var(--tag-bg);color:var(--tag-fg);border:1px solid var(--tag-border)}
+.projects-list{display:flex;flex-direction:column;gap:16px}
+.project-card{border:1px solid var(--border);border-radius:8px;padding:20px;transition:background .2s}
+.project-card:hover{background:var(--card)}
+.project-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.project-title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.project-name{font-size:14px;font-weight:600;color:var(--fg)}
+.project-links{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.icon-link{color:var(--muted-fg);text-decoration:none;display:inline-flex;align-items:center;transition:color .15s}
+.icon-link:hover{color:var(--fg)}
+.project-desc{font-size:12px;color:var(--muted-fg);line-height:1.65;margin-bottom:16px}
+.project-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.edu-list{display:flex;flex-direction:column;gap:4px}
+.edu-item{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:12px 8px;border-radius:8px;border-bottom:1px solid var(--border-40);margin:0 -8px;transition:background .15s}
+.edu-item:last-child{border-bottom:none}
+.edu-item:hover{background:var(--card-50)}
+.edu-degree{font-size:14px;font-weight:500;color:var(--fg);line-height:1.4}
+.edu-school{font-size:12px;color:var(--muted-fg);margin-top:2px}
+.edu-right{text-align:right;flex-shrink:0}
+.edu-score{display:block;font-size:12px;font-weight:500}
+.edu-period{display:block;font-size:12px;color:var(--muted-fg-60);margin-top:2px}
+.cert-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cert-card{display:flex;flex-direction:column;padding:12px;border-radius:8px;border:1px solid var(--border);text-decoration:none;transition:background .15s,border-color .15s}
+.cert-card:hover{background:var(--card)}
+.cert-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.cert-title{font-size:12px;font-weight:500;color:var(--fg);line-height:1.4}
+.cert-issuer{font-size:12px;color:var(--muted-fg);margin-top:2px}
+.cert-arrow{color:var(--muted-fg-40);flex-shrink:0;margin-top:2px;transition:color .15s}
+.cert-card:hover .cert-arrow{color:var(--primary)}
+.lc-card{border:1px solid var(--border);border-radius:8px;padding:16px}
+.lc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.lc-username{font-size:14px;font-weight:500;color:var(--fg)}
+.lc-sub{font-size:12px;color:var(--muted-fg);margin-top:2px}
+.lc-profile{font-size:12px;color:var(--muted-fg);text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:color .15s;flex-shrink:0}
+.lc-profile:hover{color:var(--primary)}
+.lc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;text-align:center}
+.lc-val{display:block;font-size:18px;font-weight:700}
+.lc-label{display:block;font-size:12px;color:var(--muted-fg);margin-top:2px}
+.lc-bars{display:flex;flex-direction:column;gap:8px}
+.lc-bar-row{display:flex;align-items:center;gap:12px}
+.lc-bar-label{font-size:12px;color:var(--muted-fg);width:48px;text-align:right;flex-shrink:0}
+.lc-bar-track{flex:1;height:4px;border-radius:999px;background:var(--muted);overflow:hidden}
+.lc-bar-fill{height:100%;border-radius:999px;transition:width .8s ease}
+.contact-intro{font-size:12px;color:var(--muted-fg);line-height:1.65;margin-bottom:24px}
+.primary-link{color:var(--primary);text-decoration:none}
+.primary-link:hover{text-decoration:underline}
+.contact-form{display:flex;flex-direction:column;gap:12px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:12px;color:var(--muted-fg);opacity:.7}
+.form-input{width:100%;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color .15s,box-shadow .15s}
+.form-input:focus{border-color:var(--primary-border);box-shadow:0 0 0 3px var(--primary-ring)}
+.form-input::placeholder{color:var(--muted-fg);opacity:.4}
+.form-textarea{resize:none}
+.form-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.form-email-hint{font-size:12px;color:var(--muted-fg-40);display:inline-flex;align-items:center;gap:4px}
+.submit-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;border:none;background:var(--submit-bg);color:var(--submit-fg);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;transition:opacity .15s,transform .1s}
+.submit-btn:hover{opacity:.88}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--fg);color:var(--bg);padding:12px 16px;border-radius:8px;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.15);transform:translateY(80px);opacity:0;transition:transform .3s ease,opacity .3s ease;z-index:9999;max-width:320px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.footer{max-width:672px;margin:0 auto;padding:24px 20px;border-top:1px solid var(--border)}
+.footer p{font-size:12px}
+.fade-in{opacity:0;transform:translateY(12px);transition:opacity .4s ease,transform .4s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+@media(max-width:600px){
+  .nav-desktop{display:none}.nav-mobile-actions{display:flex}
+  .form-row{grid-template-columns:1fr}.cert-grid{grid-template-columns:1fr}
+  .lc-stats{grid-template-columns:repeat(2,1fr)}
+  .exp-header{flex-direction:column;gap:4px}.exp-right{text-align:left}
+}`;
+}
+
+/* ── Parshant HTML builder ── */
+function parshantHtml(d: any, opts?: { darkOnly?: boolean; accentPrimary?: string; accentSubmit?: string }): string {
+  const name = d.name || 'Portfolio';
+  const username = d.username || 'user';
+  const firstLetter = (name[0] || '?').toUpperCase();
+  const accentPrimary = opts?.accentPrimary || 'hsl(142 71% 45%)';
+  const accentSubmit  = opts?.accentSubmit  || 'hsl(142 71% 45%)';
+  const darkOnly = opts?.darkOnly || false;
+  const hasSections = {
+    exp:   !!(d.experience?.length),
+    proj:  !!(d.projects?.length),
+    skills:!!(d.skills?.length),
+    edu:   !!(d.education?.length),
+    certs: !!(d.certifications?.length),
+    lc:    !!(d.leetcode?.solved || d.leetcode?.username),
+  };
+
+  const sunIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`;
+  const moonIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+  const menuIcon = `<svg id="icon-menu" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>`;
+  const pinIcon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+
+  const navLinks = [
+    hasSections.exp   ? `<a href="#experience" class="nav-link">experience</a>` : '',
+    hasSections.proj  ? `<a href="#projects"   class="nav-link">projects</a>`   : '',
+    hasSections.skills? `<a href="#skills"     class="nav-link">skills</a>`     : '',
+                        `<a href="#contact"    class="nav-link">contact</a>`,
+  ].filter(Boolean).join('');
+
+  const themeScript = darkOnly ? `<script>document.documentElement.classList.add('dark');</script>` : `<script>
+(function(){
+  var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  document.documentElement.classList.toggle('dark',t==='dark');
+})();
+</script>`;
+
+  const themeToggleDesktop = darkOnly ? '' : `<button class="theme-btn" id="theme-toggle" aria-label="Toggle theme"><span id="theme-icon-d"></span></button>`;
+  const themeToggleMobile  = darkOnly ? '' : `<button class="theme-btn" id="theme-toggle-m" aria-label="Toggle theme"><span id="theme-icon-m"></span></button>`;
+
+  const accentOverride = opts?.accentPrimary ? {
+    primary: accentPrimary,
+    primaryRing: accentPrimary.replace('hsl(','hsl(').replace(')','/0.2)'),
+    primaryBorder: accentPrimary.replace(')','/0.5)'),
+    submitBg: accentSubmit,
+    dotDark: 'hsl(0 0% 12%)',
+  } : undefined;
+
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en"${darkOnly ? ' class="dark"' : ''}>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${d.name} — Portfolio</title>
+<title>${esc(name)} — Portfolio</title>
+<meta name="description" content="${esc(d.title || '')} — Portfolio" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0a0a0a;--s:hsl(0 0% 9%);--b:hsl(0 0% 15%);--fg:hsl(0 0% 92%);--mu:hsl(0 0% 50%);--ac:${acc}}
-body{background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;line-height:1.6}
-a{color:var(--ac);text-decoration:none}a:hover{text-decoration:underline}
-.container{max-width:760px;margin:0 auto;padding:48px 24px}
-header{display:flex;align-items:flex-start;gap:28px;padding-bottom:40px;border-bottom:1px solid var(--b);margin-bottom:40px}
-.avatar-wrap{width:72px;height:72px;border-radius:50%;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#000;flex-shrink:0}
-.name{font-size:26px;font-weight:700;margin-bottom:4px}
-.title{color:var(--ac);font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:8px}
-.loc{color:var(--mu);font-size:13px;font-family:'JetBrains Mono',monospace}
-.bio{color:var(--mu);font-size:15px;line-height:1.7;margin-top:12px}
-.soc{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
-.soc a{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 12px;border:1px solid var(--b);border-radius:6px;color:var(--fg);transition:.15s}
-.soc a:hover{border-color:var(--ac);color:var(--ac);text-decoration:none}
-.section{margin-bottom:48px}
-.section-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:var(--mu);margin-bottom:24px}
-.exp-item{display:flex;gap:16px;margin-bottom:28px}
-.exp-dot{width:8px;height:8px;border-radius:50%;background:var(--ac);margin-top:8px;flex-shrink:0}
-.exp-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
-.exp-head strong{font-size:15px;font-weight:600}
-.period{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--mu)}
-.company{font-size:13px;color:var(--ac);font-family:'JetBrains Mono',monospace;margin:2px 0 6px}
-.exp-body p{font-size:14px;color:var(--mu);line-height:1.65}
-.proj-card{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:20px;margin-bottom:16px}
-.proj-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.proj-head h3{font-size:15px;font-weight:600}
-.proj-links{display:flex;gap:10px}
-.proj-links a{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--ac)}
-.proj-card p{font-size:14px;color:var(--mu);line-height:1.65;margin-bottom:12px}
-.tags,.skills-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.tag{font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 8px;background:rgba(74,222,128,.07);color:var(--ac);border:1px solid rgba(74,222,128,.15);border-radius:4px}
-.skill-tag{font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 12px;background:var(--s);border:1px solid var(--b);border-radius:6px;color:var(--fg)}
-</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+${themeScript}
+<style>${parshantCSS(accentOverride)}</style>
 </head>
 <body>
-<div class="container">
-<header>
-  <div class="avatar-wrap">${(d.name||"?")[0].toUpperCase()}</div>
-  <div>
-    <div class="name">${d.name||""}</div>
-    <div class="title">${d.title||""}</div>
-    ${d.location ? `<div class="loc">📍 ${d.location}</div>` : ""}
-    <p class="bio">${d.bio||""}</p>
-    <div class="soc">${socialLinks(d, acc)}</div>
+<div id="scroll-progress" aria-hidden="true"></div>
+<header id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">${esc(username.toLowerCase())}<span class="primary-text">.</span></a>
+    <div class="nav-desktop">
+      <nav class="nav-links">${navLinks}</nav>
+      ${themeToggleDesktop}
+    </div>
+    <div class="nav-mobile-actions">
+      ${themeToggleMobile}
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">${menuIcon}</button>
+    </div>
+  </div>
+  <div class="mobile-nav" id="mobile-nav">
+    <div class="mobile-nav-inner">${navLinks}</div>
   </div>
 </header>
-${d.experience?.length ? `<div class="section"><div class="section-label">Work Experience.</div>${expHtml(d.experience)}</div>` : ""}
-${d.projects?.length ? `<div class="section"><div class="section-label">Projects.</div>${projHtml(d.projects, acc)}</div>` : ""}
-${d.skills?.length ? `<div class="section"><div class="section-label">Skills.</div><div class="skills-wrap">${skillsHtml(d.skills)}</div></div>` : ""}
-${d.education?.length ? `<div class="section"><div class="section-label">Education.</div>${educationHtml(d.education)}</div>` : ""}
-${d.certifications?.length ? `<div class="section"><div class="section-label">Certifications.</div>${certificationsHtml(d.certifications)}</div>` : ""}
-${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><div class="section-label">LeetCode.</div>${leetcodeHtml(d.leetcode)}</div>` : ""}
-<div class="section"><div class="section-label">Contact.</div>${contactFormSection(d.username)}</div>
-${createBanner(d.username)}
-</div>
+
+<main class="main-wrap">
+
+  <section class="profile-section">
+    <div class="profile-top">
+      <div class="avatar-wrap">
+        <div class="avatar">${firstLetter}</div>
+        <span class="online-dot" title="Open to opportunities"></span>
+      </div>
+      <div class="profile-info">
+        <h1 class="profile-name">${esc(name)}</h1>
+        <p class="profile-title">${esc(d.title || '')}</p>
+        ${d.location ? `<div class="profile-meta"><span class="meta-pin">${pinIcon} ${esc(d.location)}</span></div>` : ''}
+      </div>
+    </div>
+    ${d.bio ? `<div class="bio"><p>${esc(d.bio)}</p></div>` : ''}
+    <div class="social-links">${socialLinks(d)}</div>
+  </section>
+
+  ${hasSections.exp ? `<section id="experience" class="section fade-in">
+    <h2 class="section-title">work experience.</h2>
+    ${pexpHtml(d.experience)}
+  </section>` : ''}
+
+  ${hasSections.proj ? `<section id="projects" class="section fade-in">
+    <h2 class="section-title">projects.</h2>
+    ${pprojHtml(d.projects)}
+  </section>` : ''}
+
+  ${hasSections.skills ? `<section id="skills" class="section fade-in">
+    <h2 class="section-title">skills.</h2>
+    ${pskillsHtml(d.skills)}
+  </section>` : ''}
+
+  ${hasSections.edu ? `<section id="education" class="section fade-in">
+    <h2 class="section-title">education.</h2>
+    ${peducationHtml(d.education)}
+  </section>` : ''}
+
+  ${hasSections.certs ? `<section id="certifications" class="section fade-in">
+    <h2 class="section-title">certifications.</h2>
+    ${pcertificationsHtml(d.certifications)}
+  </section>` : ''}
+
+  ${hasSections.lc ? `<section id="leetcode" class="section fade-in">
+    <h2 class="section-title">dsa / leetcode.</h2>
+    ${pleetcodeHtml(d.leetcode, username)}
+  </section>` : ''}
+
+  <section id="contact" class="section fade-in">
+    <h2 class="section-title">contact.</h2>
+    ${pcontactForm(d)}
+  </section>
+
+</main>
+
+<footer class="footer">
+  ${createBanner(username)}
+</footer>
+
+<script>
+// Scroll progress
+var prog=document.getElementById('scroll-progress');
+window.addEventListener('scroll',function(){
+  var s=document.documentElement.scrollTop,h=document.documentElement.scrollHeight-document.documentElement.clientHeight;
+  prog.style.transform='scaleX('+(h>0?s/h:0)+')';
+},{passive:true});
+
+// Navbar scroll
+var nb=document.getElementById('navbar');
+window.addEventListener('scroll',function(){nb.classList.toggle('scrolled',window.scrollY>10);},{passive:true});
+
+// Fade-in on scroll
+(function(){
+  var els=document.querySelectorAll('.fade-in');
+  var io=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.1});
+  els.forEach(function(el){io.observe(el);});
+})();
+
+// Mobile menu
+var mbtn=document.getElementById('mobile-menu-btn');var mnav=document.getElementById('mobile-nav');
+if(mbtn&&mnav){mbtn.addEventListener('click',function(){mnav.classList.toggle('open');});}
+
+${darkOnly ? '' : `// Theme toggle
+function setTheme(dark){
+  document.documentElement.classList.toggle('dark',dark);
+  localStorage.setItem('theme',dark?'dark':'light');
+  var si=document.getElementById('theme-icon-d');var sm=document.getElementById('theme-icon-m');
+  var sun='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+  var moon='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+  if(si)si.innerHTML=dark?sun:moon;if(sm)sm.innerHTML=dark?sun:moon;
+}
+setTheme(document.documentElement.classList.contains('dark'));
+var tt=document.getElementById('theme-toggle');var ttm=document.getElementById('theme-toggle-m');
+if(tt)tt.addEventListener('click',function(){setTheme(!document.documentElement.classList.contains('dark'));});
+if(ttm)ttm.addEventListener('click',function(){setTheme(!document.documentElement.classList.contains('dark'));});
+`}
+</script>
 </body></html>`;
+}
+
+/* ── Template 1: Parshant's exact design (light/dark, green accent) ── */
+function template1(d: any): string {
+  return parshantHtml(d, { darkOnly: false });
+}
+
+interface ThemeCfg {
+  accentPrimary: string; accentSubmit: string;
+}
+const THEME_CFGS: Record<number, ThemeCfg> = {
+  4:  { accentPrimary: 'hsl(199 89% 48%)', accentSubmit: 'hsl(199 89% 48%)' },
+  5:  { accentPrimary: 'hsl(38 90% 55%)',  accentSubmit: 'hsl(38 90% 55%)' },
+  6:  { accentPrimary: 'hsl(142 71% 45%)', accentSubmit: 'hsl(142 71% 45%)' },
+  7:  { accentPrimary: 'hsl(0 0% 20%)',    accentSubmit: 'hsl(0 0% 20%)' },
+  8:  { accentPrimary: 'hsl(271 81% 56%)', accentSubmit: 'hsl(271 81% 56%)' },
+  9:  { accentPrimary: 'hsl(17 80% 45%)',  accentSubmit: 'hsl(17 80% 45%)' },
+  10: { accentPrimary: 'hsl(234 89% 74%)', accentSubmit: 'hsl(234 89% 74%)' },
+  11: { accentPrimary: 'hsl(142 71% 45%)', accentSubmit: 'hsl(142 71% 45%)' },
+  12: { accentPrimary: 'hsl(0 72% 51%)',   accentSubmit: 'hsl(0 72% 51%)' },
+  13: { accentPrimary: 'hsl(293 79% 71%)', accentSubmit: 'hsl(293 79% 71%)' },
+  14: { accentPrimary: 'hsl(221 83% 53%)', accentSubmit: 'hsl(221 83% 53%)' },
+  15: { accentPrimary: 'hsl(0 72% 51%)',   accentSubmit: 'hsl(0 72% 51%)' },
+};
+
+/* ── factoryTemplate: same Parshant design, dark-only, themed accent ── */
+function factoryTemplate(d: any, cfg: ThemeCfg): string {
+  return parshantHtml(d, { darkOnly: true, accentPrimary: cfg.accentPrimary, accentSubmit: cfg.accentSubmit });
 }
 
 /* Template 2 – Light Professional */
@@ -817,13 +1086,13 @@ a{color:#3b5bdb;text-decoration:none}a:hover{text-decoration:underline}
   </div>
 </div>
 <div class="main">
-${d.experience?.length ? `<div class="section"><h2>Experience</h2>${expHtml(d.experience)}</div>` : ""}
-${d.projects?.length ? `<div class="section"><h2>Projects</h2>${projHtml(d.projects, "#3b5bdb")}</div>` : ""}
-${d.skills?.length ? `<div class="section"><h2>Skills</h2><div class="skills-wrap">${skillsHtml(d.skills)}</div></div>` : ""}
-${d.education?.length ? `<div class="section"><h2>Education</h2>${educationHtml(d.education)}</div>` : ""}
-${d.certifications?.length ? `<div class="section"><h2>Certifications</h2>${certificationsHtml(d.certifications)}</div>` : ""}
-${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><h2>LeetCode</h2>${leetcodeHtml(d.leetcode)}</div>` : ""}
-<div class="section"><h2>Contact</h2>${contactFormSection(d.username)}</div>
+${d.experience?.length ? `<div class="section"><h2>Experience</h2>${pexpHtml(d.experience)}</div>` : ""}
+${d.projects?.length ? `<div class="section"><h2>Projects</h2>${pprojHtml(d.projects)}</div>` : ""}
+${d.skills?.length ? `<div class="section"><h2>Skills</h2><div class="skills-wrap">${pskillsHtml(d.skills)}</div></div>` : ""}
+${d.education?.length ? `<div class="section"><h2>Education</h2>${peducationHtml(d.education)}</div>` : ""}
+${d.certifications?.length ? `<div class="section"><h2>Certifications</h2>${pcertificationsHtml(d.certifications)}</div>` : ""}
+${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><h2>LeetCode</h2>${pleetcodeHtml(d.leetcode, d.username)}</div>` : ""}
+<div class="section"><h2>Contact</h2>${pcontactForm(d)}</div>
 ${createBanner(d.username)}
 </div>
 </body></html>`;
@@ -891,13 +1160,13 @@ a{color:#e879f9;text-decoration:none}a:hover{text-decoration:underline}
   </div>
 </div>
 <div class="main">
-${d.experience?.length ? `<div class="section"><div class="section-label">Experience</div>${expHtml(d.experience)}</div>` : ""}
-${d.projects?.length ? `<div class="section"><div class="section-label">Projects</div><div class="proj-grid">${projHtml(d.projects, "#a855f7")}</div></div>` : ""}
-${d.skills?.length ? `<div class="section"><div class="section-label">Skills</div><div class="skills-wrap">${skillsHtml(d.skills)}</div></div>` : ""}
-${d.education?.length ? `<div class="section"><div class="section-label">Education</div>${educationHtml(d.education)}</div>` : ""}
-${d.certifications?.length ? `<div class="section"><div class="section-label">Certifications</div>${certificationsHtml(d.certifications)}</div>` : ""}
-${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><div class="section-label">LeetCode</div>${leetcodeHtml(d.leetcode)}</div>` : ""}
-<div class="section"><div class="section-label">Contact</div>${contactFormSection(d.username)}</div>
+${d.experience?.length ? `<div class="section"><div class="section-label">Experience</div>${pexpHtml(d.experience)}</div>` : ""}
+${d.projects?.length ? `<div class="section"><div class="section-label">Projects</div><div class="proj-grid">${pprojHtml(d.projects)}</div></div>` : ""}
+${d.skills?.length ? `<div class="section"><div class="section-label">Skills</div><div class="skills-wrap">${pskillsHtml(d.skills)}</div></div>` : ""}
+${d.education?.length ? `<div class="section"><div class="section-label">Education</div>${peducationHtml(d.education)}</div>` : ""}
+${d.certifications?.length ? `<div class="section"><div class="section-label">Certifications</div>${pcertificationsHtml(d.certifications)}</div>` : ""}
+${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><div class="section-label">LeetCode</div>${pleetcodeHtml(d.leetcode, d.username)}</div>` : ""}
+<div class="section"><div class="section-label">Contact</div>${pcontactForm(d)}</div>
 ${createBanner(d.username)}
 </div>
 </body></html>`;
