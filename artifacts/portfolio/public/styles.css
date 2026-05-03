@@ -1108,3 +1108,31 @@ body.user-edit-mode [data-editable]:focus {
   background: none; border: none; cursor: pointer;
   color: var(--muted-fg); font-size: 14px; line-height: 1;
 }
+
+/* ── User Edit FAB ── */
+.user-edit-fab {
+  position: fixed; bottom: 28px; left: 28px; z-index: 8500;
+  background: hsl(224 76% 46%); color: #fff;
+  border: none; border-radius: 12px; padding: 11px 18px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 24px hsl(224 76% 28% / 0.45);
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.user-edit-fab:hover {
+  background: hsl(224 76% 40%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px hsl(224 76% 28% / 0.5);
+}
+
+/* ── Editable field highlight in user edit mode ── */
+body.user-edit-mode [contenteditable]:focus {
+  outline: 2px solid hsl(224 76% 55% / 0.45);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+body.user-edit-mode [contenteditable]:hover:not(:focus) {
+  outline: 1px dashed hsl(224 76% 55% / 0.3);
+  outline-offset: 2px;
+  border-radius: 3px;
+}

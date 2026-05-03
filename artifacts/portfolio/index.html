@@ -456,7 +456,7 @@
   <div class="user-toolbar" id="user-toolbar">
     <span class="user-toolbar-info">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      editing your portfolio · <span id="user-toolbar-email"></span>
+      editing your portfolio · click any text to change · <span id="user-toolbar-email"></span>
     </span>
     <div class="user-toolbar-actions">
       <button class="user-save-btn" id="user-save-btn">Save &amp; Get Link</button>
@@ -500,6 +500,12 @@
       </form>
     </div>
   </div>
+
+  <!-- User Edit FAB (shown on /p/:slug when not logged in) -->
+  <button class="user-edit-fab" id="user-edit-fab" style="display:none" title="Edit this portfolio">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Edit Portfolio
+  </button>
 
   <!-- User Link Reveal -->
   <div class="user-link-reveal" id="user-link-reveal">

@@ -1251,12 +1251,39 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
 
   function enterUserEditMode(em) {
     document.body.classList.add('user-edit-mode');
+
+    // All [data-editable] fields
     document.querySelectorAll('[data-editable]').forEach(el => {
       el.contentEditable = 'true';
       el.spellcheck = false;
     });
+
+    // Extra fields inside list containers that lack data-editable
+    [
+      '.exp-company',    // experience company name/link
+      '.exp-loc',        // experience location
+      '.project-badge',  // project type badge
+      '.project-metric', // project outcome text
+      '.lc-username',    // LeetCode username
+      '.lc-val',         // LeetCode stat numbers
+      '.lc-label',       // LeetCode stat labels
+      '.lc-bar-label',   // LeetCode bar row labels
+      '.skill-label',    // skill category labels (AI/ML, Frontend…)
+      '.cert-title',     // certificate name
+      '.cert-issuer',    // certificate issuer
+    ].forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        el.contentEditable = 'true';
+        el.spellcheck = false;
+      });
+    });
+
     if (userToolbar) userToolbar.classList.add('visible');
     if (userToolbarEmail) userToolbarEmail.textContent = em || '';
+
+    // Hide FAB once in edit mode
+    const fab = document.getElementById('user-edit-fab');
+    if (fab) fab.style.display = 'none';
   }
 
   if (token && savedSlug === USER_SLUG) {
@@ -1274,6 +1301,13 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   }
 
   function showEditPrompt() {
+    // Show prominent floating "Edit" FAB on the live portfolio link
+    const fab = document.getElementById('user-edit-fab');
+    if (fab) {
+      fab.style.display = '';
+      fab.addEventListener('click', () => { setMode(false); openModal(); });
+    }
+    // Also surface the footer button
     if (userPortfolioBtn) {
       userPortfolioBtn.style.display = '';
       userPortfolioBtn.textContent = 'Edit this portfolio';
