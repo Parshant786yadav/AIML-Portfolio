@@ -2,75 +2,80 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Parshant Yadav's AI/ML portfolio site + "Create Your Portfolio" platform.
+pnpm workspace monorepo. Parshant Yadav's AI/ML portfolio site with a multi-tenant portfolio builder — visitors can create their own copy at `/p/:slug`.
 
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces
 - **Node.js version**: 24
 - **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Build**: esbuild (CJS bundle)
+- **Frontend**: Vite + React (SPA mode, `appType: 'spa'`)
+- **Backend**: Python Flask (`artifacts/api-server/app.py`)
 
 ## Artifacts
 
-- **`artifacts/portfolio`** — Vite static site at `/` (Parshant's portfolio + Create Your Portfolio wizard)
-- **`artifacts/api-server`** — Express API at `/api` and `/p` (portfolio serving + builder API)
+- **`artifacts/portfolio`** — Vite SPA at `/`. Parshant's portfolio + user portfolio viewer/editor at `/p/:slug`.
+- **`artifacts/api-server`** — Python Flask API at `/api`. Port 8080.
 
-## Portfolio Builder Platform
+## Backend (app.py)
 
-### Auth (JSON file-based)
-- Users stored in `artifacts/api-server/data/builder-users.json`
-- Fields: `{ username, displayName, passwordHash, adminPassword, token, created }`
-- `adminPassword` is human-readable (e.g. "Sky-Bear-742"), shown once after registration
-- API: `POST /api/builder/register`, `POST /api/builder/login`
+- Admin credentials: `parshant` / `Admin@2026`
+- Admin content stored in `artifacts/api-server/data/content.json`
+- User accounts + content stored in `artifacts/api-server/data/users.db` (SQLite)
+- Passwords hashed with SHA-256
+- `init_db()` runs at startup to create tables if missing
 
-### Portfolio Data Format
-- Stored per-user in `artifacts/api-server/data/portfolios/:username.json`
-- Links: **array format** `[{ platform, url }]` (old format: object `{ github, linkedin, website }` — both supported)
-- New sections: `education`, `certifications`, `leetcode`, `contacts`
-- `education`: `[{ institution, degree, field, period, cgpa, description }]`
-- `certifications`: `[{ name, issuer, date, url }]`
-- `leetcode`: `{ username, solved, hard, medium, easy, rating }`
-- `contacts`: `[{ name, email, message, date }]` — contact form submissions
+## API Routes
 
-### API Routes (`/api/builder/*`)
-- `POST /api/builder/register` — create account, returns `adminPassword`
-- `POST /api/builder/login` — sign in, returns `adminPassword`
-- `POST /api/builder/chat` — AI wizard chat (Anthropic)
-- `POST /api/builder/create` — save/create portfolio
-- `GET /api/builder/my-portfolio` — fetch own portfolio data
-- `POST /api/builder/my-portfolio` — update own portfolio data
-- `GET /api/builder/contacts` — fetch contact form submissions
+### Admin
+- `POST /api/admin/login` — returns token (stored in sessionStorage)
+- `GET  /api/admin/content` — returns saved content JSON (public)
+- `POST /api/admin/content` — saves content (requires Bearer token)
+- `POST /api/admin/logout`
 
-### Portfolio Routes (`/p/*`)
-- `GET /p/:username` — serve generated portfolio (query `?t=1..15` for template)
-- `POST /p/:username/contact` — save contact form submission
-- `GET /p/:username/admin` — serve standalone admin panel (login → edit portfolio + view contacts)
+### Users (multi-tenant portfolio builder)
+- `POST /api/users/register` — `{email, password}` → `{token, slug, email}`
+- `POST /api/users/login`    — `{email, password}` → `{token, slug, email}`
+- `POST /api/users/logout`
+- `GET  /api/users/me`       — requires Bearer token
+- `GET  /api/users/content/:slug` — public; falls back to admin content.json if no user content saved yet
+- `POST /api/users/content`  — `{...content}` → saves, returns `{ok, slug}`
 
-### Templates
-- 15 templates (1-15), rendered server-side as full HTML pages
-- Template 1: Dark Minimal | 2: Light Professional | 3: Creative Bold | 4-15: themed variants via `factoryTemplate()`
-- All templates include: Experience, Projects, Skills, **Education, Certifications, LeetCode, Contact Form**
+### Chat
+- `POST /api/chat` — proxies to DocuMind API (requires `DOCUMIND_API_KEY` secret)
 
-### Wizard Flow (`/` — Create Your Portfolio FAB)
-1. Auth (login/register)
-2. Choose path: AI Guided (chat) or Manual Editor
-3. Manual editor: dynamic links, experience, projects, skills, education, certifications, LeetCode
-4. Preview step: 15 template thumbnails + share URL + **admin credentials card**
+## Frontend Architecture
 
-### Key Files
-- `artifacts/api-server/src/routes/builder.ts` — all builder logic, templates, admin panel
-- `artifacts/portfolio/index.html` — main HTML with wizard markup
-- `artifacts/portfolio/public/create.js` — wizard JavaScript
-- `artifacts/portfolio/public/create.css` — wizard styles
-- `artifacts/portfolio/public/script.js` — Parshant's own portfolio JS
-- `artifacts/portfolio/public/styles.css` — Parshant's own portfolio CSS
+### Route detection
+`const USER_SLUG = (window.location.pathname.match(/^\/p\/([a-z0-9_-]+)/i) || [])[1]?.toLowerCase() || null;`
 
-## Key Commands
+- If `USER_SLUG` is null → main portfolio route (`/`): loads from `/api/admin/content`, admin CMS active
+- If `USER_SLUG` is set → user portfolio route (`/p/:slug`): loads from `/api/users/content/:slug`, admin CMS skipped
 
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
-- `pnpm --filter @workspace/portfolio run dev` — run portfolio frontend locally
+### SPA routing
+`appType: 'spa'` in `vite.config.ts` makes Vite serve `index.html` for all unmatched paths, enabling `/p/:slug` to work client-side.
 
-See the `pnpm-workspace` skill for workspace structure and TypeScript setup.
+### Admin CMS
+- Login button in footer → opens admin modal → token stored in `sessionStorage`
+- Edit mode: all `[data-editable]` fields become contenteditable; list controls injected
+- Save: POST to `/api/admin/content`; changes Parshant's live site
+
+### User CMS (multi-tenant)
+- Footer "Create your portfolio →" button (hidden on user routes) → opens login/register modal
+- On `/p/:slug`: token from `localStorage` (`user-token`, `user-slug`, `user-email`) verified via `/api/users/me`
+- If owner: blue edit toolbar slides in at top, all `[data-editable]` become editable
+- "Save & Get Link" → POST to `/api/users/content` → shows link reveal with copy button
+- User edits are isolated — they NEVER affect Parshant's `content.json`
+
+## Key Files
+
+- `artifacts/api-server/app.py` — full Flask backend
+- `artifacts/portfolio/index.html` — HTML structure (user toolbar, user modal, user link reveal, footer)
+- `artifacts/portfolio/public/script.js` — all JS (theme toggle, admin CMS IIFE, user CMS IIFE)
+- `artifacts/portfolio/public/styles.css` — all styles including user modal/toolbar/footer
+- `artifacts/portfolio/vite.config.ts` — `appType: 'spa'` for SPA fallback
+
+## Workflow Commands
+
+- **API Server**: `pip install flask flask-cors requests -q && python /home/runner/workspace/artifacts/api-server/app.py`
+- **Portfolio**: `pnpm --filter @workspace/portfolio run dev`

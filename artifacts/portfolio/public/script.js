@@ -134,6 +134,9 @@ function toggleTheme(event) {
 document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 document.getElementById('theme-toggle-mobile').addEventListener('click', toggleTheme);
 
+/* ─── User route detection (must be before admin CMS) ─── */
+const USER_SLUG = (window.location.pathname.match(/^\/p\/([a-z0-9_-]+)/i) || [])[1]?.toLowerCase() || null;
+
 /* ─── Scroll progress bar ─── */
 const progressBar = document.getElementById('scroll-progress');
 window.addEventListener('scroll', () => {
@@ -391,7 +394,7 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   /* ── Load & apply saved overrides ── */
   async function loadOverrides() {
     try {
-      const res = await fetch('/api/admin/content');
+      const res = await fetch(USER_SLUG ? `/api/users/content/${USER_SLUG}` : '/api/admin/content');
       if (!res.ok) return;
       const data = await res.json();
       Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
@@ -430,6 +433,12 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   const adminToolbar    = document.getElementById('admin-toolbar');
   const adminSaveBtn    = document.getElementById('admin-save-btn');
   const adminLogoutBtn  = document.getElementById('admin-logout-btn');
+
+  /* ── Skip admin UI entirely on user portfolio routes ── */
+  if (USER_SLUG) {
+    if (adminLoginBtn) adminLoginBtn.style.display = 'none';
+    return;
+  }
 
   /* ── Helpers ── */
   function editable(el) { if (!el) return; el.contentEditable = 'true'; el.spellcheck = false; }
@@ -1137,5 +1146,201 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     const token = sessionStorage.getItem(TOKEN_KEY);
     if (token) await fetch('/api/admin/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }).catch(() => {});
     exitAdminMode();
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   User Portfolio CMS
+   ═══════════════════════════════════════════════════════════ */
+(async function initUserCMS() {
+  const U_TOKEN = 'user-token';
+  const U_SLUG  = 'user-slug';
+  const U_EMAIL = 'user-email';
+
+  const userModal       = document.getElementById('user-modal');
+  const userModalClose  = document.getElementById('user-modal-close');
+  const userAuthForm    = document.getElementById('user-auth-form');
+  const userAuthError   = document.getElementById('user-auth-error');
+  const userAuthSubmit  = document.getElementById('user-auth-submit');
+  const userTabLogin    = document.getElementById('user-tab-login');
+  const userTabReg      = document.getElementById('user-tab-register');
+  const userEmailInput  = document.getElementById('user-email');
+  const userPassInput   = document.getElementById('user-password');
+  const userPortfolioBtn= document.getElementById('user-portfolio-btn');
+  const userToolbar     = document.getElementById('user-toolbar');
+  const userToolbarEmail= document.getElementById('user-toolbar-email');
+  const userSaveBtn     = document.getElementById('user-save-btn');
+  const userLogoutBtn   = document.getElementById('user-logout-btn');
+  const userLinkReveal  = document.getElementById('user-link-reveal');
+  const userLinkUrl     = document.getElementById('user-link-url');
+  const userLinkCopy    = document.getElementById('user-link-copy');
+  const userLinkClose   = document.getElementById('user-link-close');
+
+  let isRegister = false;
+
+  function setMode(reg) {
+    isRegister = reg;
+    userTabLogin?.classList.toggle('active', !reg);
+    userTabReg?.classList.toggle('active', reg);
+    if (userAuthSubmit) userAuthSubmit.textContent = reg ? 'Create Account' : 'Login';
+    if (userAuthError) userAuthError.textContent = '';
+  }
+
+  function openModal() { userModal?.classList.add('open'); }
+  function closeModal() {
+    userModal?.classList.remove('open');
+    if (userAuthError) userAuthError.textContent = '';
+    userAuthForm?.reset();
+  }
+
+  userTabLogin?.addEventListener('click', () => setMode(false));
+  userTabReg?.addEventListener('click',   () => setMode(true));
+  userModalClose?.addEventListener('click', closeModal);
+  userModal?.addEventListener('click', e => { if (e.target === userModal) closeModal(); });
+
+  /* ── Auth form submit ── */
+  userAuthForm?.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (userAuthError) userAuthError.textContent = '';
+    const email    = (userEmailInput?.value || '').trim();
+    const password = userPassInput?.value || '';
+    const endpoint = isRegister ? '/api/users/register' : '/api/users/login';
+    if (userAuthSubmit) { userAuthSubmit.disabled = true; userAuthSubmit.textContent = isRegister ? 'Creating…' : 'Logging in…'; }
+    try {
+      const res  = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { if (userAuthError) userAuthError.textContent = data.error || 'Something went wrong.'; return; }
+      localStorage.setItem(U_TOKEN, data.token);
+      localStorage.setItem(U_SLUG,  data.slug);
+      localStorage.setItem(U_EMAIL, data.email);
+      closeModal();
+      window.location.href = `/p/${data.slug}`;
+    } catch { if (userAuthError) userAuthError.textContent = 'Connection error. Try again.'; }
+    finally {
+      if (userAuthSubmit) { userAuthSubmit.disabled = false; userAuthSubmit.textContent = isRegister ? 'Create Account' : 'Login'; }
+    }
+  });
+
+  /* ── On main route: show "Create your portfolio" button ── */
+  if (!USER_SLUG) {
+    if (userPortfolioBtn) {
+      userPortfolioBtn.style.display = '';
+      userPortfolioBtn.addEventListener('click', () => { setMode(false); openModal(); });
+    }
+    return;
+  }
+
+  /* ── On /p/:slug route ── */
+  // Update page title
+  const nameEl = document.querySelector('[data-editable="profile-name"]');
+  if (nameEl?.textContent.trim()) document.title = nameEl.textContent.trim() + ' — Portfolio';
+
+  const token     = localStorage.getItem(U_TOKEN);
+  const savedSlug = localStorage.getItem(U_SLUG);
+  const email     = localStorage.getItem(U_EMAIL);
+
+  function clearSession() {
+    localStorage.removeItem(U_TOKEN);
+    localStorage.removeItem(U_SLUG);
+    localStorage.removeItem(U_EMAIL);
+  }
+
+  function enterUserEditMode(em) {
+    document.body.classList.add('user-edit-mode');
+    document.querySelectorAll('[data-editable]').forEach(el => {
+      el.contentEditable = 'true';
+      el.spellcheck = false;
+    });
+    if (userToolbar) userToolbar.classList.add('visible');
+    if (userToolbarEmail) userToolbarEmail.textContent = em || '';
+  }
+
+  if (token && savedSlug === USER_SLUG) {
+    try {
+      const res = await fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) {
+        enterUserEditMode(email);
+      } else {
+        clearSession();
+        showEditPrompt();
+      }
+    } catch { clearSession(); showEditPrompt(); }
+  } else {
+    showEditPrompt();
+  }
+
+  function showEditPrompt() {
+    if (userPortfolioBtn) {
+      userPortfolioBtn.style.display = '';
+      userPortfolioBtn.textContent = 'Edit this portfolio';
+      userPortfolioBtn.addEventListener('click', () => { setMode(false); openModal(); });
+    }
+  }
+
+  /* ── Save & Get Link ── */
+  userSaveBtn?.addEventListener('click', async () => {
+    const tok = localStorage.getItem(U_TOKEN);
+    if (!tok) return;
+
+    const LIST_SEL = {
+      'exp-list': '.exp-list', 'projects-list': '.projects-list',
+      'edu-list': '.edu-list', 'cert-grid': '.cert-grid',
+      'skills-list': '.skills-list', 'social-links': '.social-links', 'lc-card': '.lc-card',
+    };
+    const content = {};
+    document.querySelectorAll('[data-editable]').forEach(el => {
+      content[el.dataset.editable] = el.innerHTML;
+    });
+    Object.entries(LIST_SEL).forEach(([key, sel]) => {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('[contenteditable]').forEach(x => x.removeAttribute('contenteditable'));
+      content[key] = clone.innerHTML;
+    });
+
+    const orig = userSaveBtn.textContent;
+    userSaveBtn.textContent = 'Saving…'; userSaveBtn.disabled = true;
+    try {
+      const res = await fetch('/api/users/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tok}` },
+        body: JSON.stringify(content),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showLinkReveal(data.slug);
+        userSaveBtn.textContent = '✓ Saved!';
+      } else { userSaveBtn.textContent = 'Save Failed'; }
+    } catch { userSaveBtn.textContent = 'Save Failed'; }
+    setTimeout(() => { userSaveBtn.textContent = orig; userSaveBtn.disabled = false; }, 2500);
+  });
+
+  function showLinkReveal(slug) {
+    const link = `${window.location.origin}/p/${slug}`;
+    if (userLinkUrl) { userLinkUrl.textContent = link; userLinkUrl.href = link; }
+    userLinkReveal?.classList.add('open');
+    if (userLinkCopy) {
+      userLinkCopy.textContent = 'Copy';
+      userLinkCopy.onclick = () => {
+        navigator.clipboard.writeText(link).then(() => {
+          userLinkCopy.textContent = 'Copied!';
+          setTimeout(() => userLinkCopy.textContent = 'Copy', 2000);
+        });
+      };
+    }
+    if (userLinkClose) userLinkClose.onclick = () => userLinkReveal.classList.remove('open');
+  }
+
+  /* ── Logout ── */
+  userLogoutBtn?.addEventListener('click', async () => {
+    const tok = localStorage.getItem(U_TOKEN);
+    if (tok) await fetch('/api/users/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${tok}` } }).catch(() => {});
+    clearSession();
+    window.location.reload();
   });
 })();

@@ -27,6 +27,7 @@ if (!basePath) {
 }
 
 export default defineConfig({
+  appType: 'spa',
   base: basePath,
   plugins: [
     react(),

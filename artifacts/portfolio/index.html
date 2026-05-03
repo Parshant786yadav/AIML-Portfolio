@@ -446,8 +446,23 @@
 
   <footer class="footer">
     <p class="mono muted-text" data-editable="footer-text">© 2026 Parshant Yadav · Built with purpose</p>
-    <button class="admin-login-btn" id="admin-login-btn">login as admin</button>
+    <div class="footer-right">
+      <button class="user-portfolio-btn" id="user-portfolio-btn" style="display:none">Create your portfolio →</button>
+      <button class="admin-login-btn" id="admin-login-btn">login as admin</button>
+    </div>
   </footer>
+
+  <!-- User Toolbar -->
+  <div class="user-toolbar" id="user-toolbar">
+    <span class="user-toolbar-info">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      editing your portfolio · <span id="user-toolbar-email"></span>
+    </span>
+    <div class="user-toolbar-actions">
+      <button class="user-save-btn" id="user-save-btn">Save &amp; Get Link</button>
+      <button class="user-logout-btn" id="user-logout-btn">logout</button>
+    </div>
+  </div>
 
   <!-- Admin Toolbar -->
   <div class="admin-toolbar" id="admin-toolbar">
@@ -458,6 +473,43 @@
     <div class="admin-toolbar-actions">
       <button class="admin-save-btn" id="admin-save-btn">Done &amp; Go Live</button>
       <button class="admin-logout-btn" id="admin-logout-btn">logout</button>
+    </div>
+  </div>
+
+  <!-- User Auth Modal -->
+  <div class="user-modal-overlay" id="user-modal">
+    <div class="user-modal">
+      <div class="user-modal-header">
+        <div class="user-modal-tabs">
+          <button class="user-tab active" id="user-tab-login" type="button">Login</button>
+          <button class="user-tab" id="user-tab-register" type="button">Register</button>
+        </div>
+        <button class="user-modal-close" id="user-modal-close" type="button">✕</button>
+      </div>
+      <form id="user-auth-form" autocomplete="off">
+        <div class="user-field">
+          <label for="user-email">email</label>
+          <input type="email" id="user-email" placeholder="you@example.com" required />
+        </div>
+        <div class="user-field">
+          <label for="user-password">password</label>
+          <input type="password" id="user-password" placeholder="min 6 characters" required />
+        </div>
+        <p class="user-auth-error" id="user-auth-error"></p>
+        <button type="submit" class="user-auth-submit" id="user-auth-submit">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- User Link Reveal -->
+  <div class="user-link-reveal" id="user-link-reveal">
+    <div class="user-link-box">
+      <p class="user-link-label">✓ Your portfolio is live!</p>
+      <div class="user-link-row">
+        <a href="#" id="user-link-url" target="_blank" class="user-link-href"></a>
+        <button class="user-link-copy" id="user-link-copy" type="button">Copy</button>
+      </div>
+      <button class="user-link-close" id="user-link-close" type="button">✕</button>
     </div>
   </div>
 
