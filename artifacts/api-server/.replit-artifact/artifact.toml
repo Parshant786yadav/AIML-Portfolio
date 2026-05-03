@@ -10,7 +10,7 @@ kind = "api"
     paths = ["/api"]
 
     [services.development]
-    run = "pip install flask flask-cors requests -q && python /home/runner/workspace/artifacts/api-server/app.py"
+    run = "pip install flask flask-cors requests psycopg2-binary -q && python /home/runner/workspace/artifacts/api-server/app.py"
 
     [services.production]
 
@@ -22,4 +22,3 @@ kind = "api"
 
     [services.production.health.startup]
     path = "/api/healthz"
-  
