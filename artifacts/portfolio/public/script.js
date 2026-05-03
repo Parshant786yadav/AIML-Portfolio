@@ -186,8 +186,6 @@ const chatSend      = document.getElementById('chat-send');
 const chatMessages  = document.getElementById('chat-messages');
 const chatFabOpen   = document.getElementById('chat-fab-open');
 const chatFabClose  = document.getElementById('chat-fab-close');
-const chatContactLink = document.getElementById('chat-contact-link');
-
 let chatOpen = false;
 
 function toggleChat() {
@@ -201,11 +199,6 @@ function toggleChat() {
 
 chatFab.addEventListener('click', toggleChat);
 chatClose.addEventListener('click', toggleChat);
-
-chatContactLink.addEventListener('click', () => {
-  toggleChat();
-  document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
-});
 
 function appendMsg(html, role) {
   const msg    = document.createElement('div');

@@ -1,0 +1,64 @@
+How DocuMind is wired in your chatbot
+1. DocuMind HTTP API (what every integration must do)
+URL: https://documind.parshantyadav.com/api/v1/chat
+(same host may vary if they self-host; yours matches index.html.)
+Method: POST
+Headers:
+Content-Type: application/json
+Authorization: Bearer <YOUR_DOCUMIND_API_KEY>
+Body (JSON):
+message (string) — required
+history (optional) — array of past turns if you want multi-turn context
+Your frontend builds that in sendMessage:
+
+
+index.html
+Lines 1120-1140
+      async function sendMessage(msg, addToHistory = false) {
+        const payload = { message: msg };
+        if (addToHistory) payload.history = history;
+        const res = await fetch(AI_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + DOCUMIND_KEY
+          },
+          body: JSON.stringify(payload)
+        });
+        // ...
+        return JSON.parse(text).reply || text;
+      }
+So integration = same URL + Bearer key + JSON body, then read reply from the JSON response.
+
+2. Where the API key lives on your site (current setup)
+In index.html, near the chat script:
+
+AI_URL — DocuMind chat endpoint
+DOCUMIND_KEY — your key string
+Every chat send uses fetch with Authorization: Bearer + that key
+That means the key is in the page JavaScript and visible to anyone who opens DevTools or views source. Fine for demos / low-risk keys; not ideal for production if the key is sensitive or billed.
+
+3. Safer pattern you already have in the repo (backend proxy)
+functions/index.js defines a Firebase HTTPS function that:
+
+Reads DOCUMIND_API_KEY from Firebase Secrets (not from the browser)
+Forwards message / history to the same DocuMind URL with Bearer + secret
+Returns { reply } to the client
+Someone integrating “properly” would:
+
+Put the DocuMind key in Firebase/Google Secret Manager as DOCUMIND_API_KEY
+Deploy the function
+Point the website fetch at https://<region>-<project>.cloudfunctions.net/chat (or their URL) without sending the DocuMind key from the browser
+Your live index.html chat does not call that function today—it calls DocuMind directly.
+
+Checklist to give another person (“how they integrate”)
+Get a DocuMind API key from DocuMind (dashboard / account).
+Choose integration style:
+Quick / browser-only: set AI_URL and DOCUMIND_KEY like your index.html, same fetch shape as above. Warn them the key is public.
+Recommended: small backend (Firebase function, Vercel serverless, etc.) that holds the key and proxies POST body → DocuMind → returns reply.
+Implement sendMessage:
+POST, JSON body { message, history? }
+Header Authorization: Bearer <key> (only on server if using proxy)
+Parse JSON and use reply for the bot bubble.
+CORS: If they call DocuMind from the browser, DocuMind must allow their site’s origin (or they’ll get CORS errors). A backend proxy avoids that for their domain.
+Rotation: If they ever exposed a key in git or HTML, rotate the key in DocuMind and update the new location only.

@@ -2,15 +2,19 @@ import { Router, type IRouter } from "express";
 
 const router: IRouter = Router();
 
-const DIFY_API_KEY = "dm_0cfb3ba8c1663aa8_33492fce67bf6134d89fbc273b9c2184";
-const DIFY_API_URL = "https://hirewise.parshantyadav.com/api/v1/chat";
+const DOCUMIND_API_KEY = process.env.DOCUMIND_API_KEY ?? "";
+const DOCUMIND_API_URL = "https://documind.parshantyadav.com/api/v1/chat";
 
 router.post("/chat", async (req, res) => {
+  if (!DOCUMIND_API_KEY) {
+    res.status(503).json({ error: "Chat service not configured" });
+    return;
+  }
   try {
-    const response = await fetch(DIFY_API_URL, {
+    const response = await fetch(DOCUMIND_API_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${DIFY_API_KEY}`,
+        Authorization: `Bearer ${DOCUMIND_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(req.body),
