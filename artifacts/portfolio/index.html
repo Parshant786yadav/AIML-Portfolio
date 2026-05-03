@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/create.css" />
 </head>
 <body>
 
@@ -526,7 +527,126 @@
     </div>
   </div>
 
+  <!-- Portfolio Creator FAB -->
+  <button class="create-fab" id="create-portfolio-fab" title="Create your own portfolio">
+    <div class="create-fab-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+      Create Your Portfolio
+    </div>
+  </button>
+
+  <!-- Portfolio Creator Wizard Overlay -->
+  <div class="wizard-overlay" id="wizard-overlay" style="display:none">
+    <div class="wizard-header">
+      <span class="wizard-logo">✦ portfolio.builder</span>
+      <button class="wizard-close" id="wizard-close" title="Close">✕</button>
+    </div>
+
+    <div class="wizard-body">
+
+      <!-- Progress bar -->
+      <div style="padding:12px 28px 0;flex-shrink:0" id="wiz-progress-wrap">
+        <div class="wizard-progress" style="max-width:100%">
+          <div class="wizard-progress-label">
+            <span id="wiz-progress-label-step">Sign in</span>
+            <span id="wiz-progress-pct"></span>
+          </div>
+          <div class="wizard-progress-track">
+            <div class="wizard-progress-fill" id="wiz-progress-fill" style="width:25%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1: Auth -->
+      <div class="wizard-step active" id="wiz-step-auth">
+        <div class="auth-card">
+          <h2 id="auth-title">Welcome back</h2>
+          <p class="auth-subtitle" id="auth-subtitle">Sign in to build or update your portfolio.</p>
+          <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Sign in</button>
+            <button class="auth-tab" data-tab="register">Create account</button>
+          </div>
+          <form id="auth-form" autocomplete="off">
+            <div class="wiz-field" id="auth-displayname-field" style="display:none">
+              <label for="auth-displayname">Display name</label>
+              <input type="text" id="auth-displayname" placeholder="Your full name" autocomplete="off" />
+            </div>
+            <div class="wiz-field">
+              <label for="auth-username">Username</label>
+              <input type="text" id="auth-username" placeholder="e.g. johndoe" autocomplete="off" required />
+            </div>
+            <div class="wiz-field">
+              <label for="auth-password">Password</label>
+              <input type="password" id="auth-password" placeholder="••••••••" autocomplete="off" required />
+            </div>
+            <p class="auth-error" id="auth-error"></p>
+            <button type="submit" class="wiz-btn-primary" id="auth-submit-btn">Sign in →</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Step 2: Chat Wizard -->
+      <div class="wizard-step" id="wiz-step-chat">
+        <div class="chat-container">
+          <h2 class="chat-title">Let's build your portfolio</h2>
+          <p class="chat-subtitle">Our AI will guide you — just answer the questions naturally.</p>
+          <div class="chat-messages" id="wiz-chat-messages"></div>
+          <div class="chat-input-row">
+            <textarea class="chat-input" id="wiz-chat-input" placeholder="Type your answer…" rows="1"></textarea>
+            <button class="chat-send" id="wiz-chat-send" title="Send">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Generating -->
+      <div class="wizard-step" id="wiz-step-generating">
+        <div class="generating-wrap">
+          <div class="generating-orb"></div>
+          <h2 class="generating-title">Creating your portfolio…</h2>
+          <p class="generating-sub" id="wiz-gen-sub">Crafting your hero section…</p>
+        </div>
+      </div>
+
+      <!-- Step 4: Preview -->
+      <div class="wizard-step" id="wiz-step-preview">
+        <div class="preview-header">
+          <h2>Your portfolio is ready!</h2>
+          <p>Pick a design, copy your link, and share it with the world.</p>
+          <div class="template-switcher">
+            <button class="tmpl-btn active" data-t="1">
+              <span class="tmpl-dot" style="background:hsl(142 71% 45%)"></span>
+              Dark Minimal
+            </button>
+            <button class="tmpl-btn" data-t="2">
+              <span class="tmpl-dot" style="background:#3b5bdb"></span>
+              Light Professional
+            </button>
+            <button class="tmpl-btn" data-t="3">
+              <span class="tmpl-dot" style="background:#a855f7"></span>
+              Creative Bold
+            </button>
+          </div>
+        </div>
+        <div class="preview-frame-wrap">
+          <iframe class="preview-frame" id="wiz-preview-frame" title="Portfolio preview" sandbox="allow-same-origin allow-scripts"></iframe>
+        </div>
+        <div class="share-section">
+          <span class="share-label">Your link:</span>
+          <div class="share-url" id="wiz-share-url"></div>
+          <button class="share-copy-btn" id="wiz-copy-btn">Copy link</button>
+          <a class="share-open-btn" id="wiz-open-btn" href="#" target="_blank" rel="noopener">
+            Open ↗
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="/script.js"></script>
+  <script src="/create.js"></script>
 </body>
 </html>

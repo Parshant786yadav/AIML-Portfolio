@@ -1,0 +1,16 @@
+{
+  "testuser": {
+    "username": "testuser",
+    "displayName": "Test User",
+    "passwordHash": "60824b58a28505d26ff2c989bbeacbb6:87d5446ed62f2c0f72f47dbf6ac81b07a173485ffc7c4998f054c5bb1bfacc9eea39932967ae59c96ec45e82eaf1c283f7d03cbe8e2cf629dc423c9da3cdc239",
+    "token": "8b0bd44698ee665e33eb34f9ffb9328a9164da4bb2f7874de7160ce3740952a6",
+    "created": 1777784694312
+  },
+  "testuser2": {
+    "username": "testuser2",
+    "displayName": "Test User",
+    "passwordHash": "d3ef428ea0d4798323d22a30ca4dbc3b:5c86622954698d285b66b3127ca42d7c12b65f518b8af8061297f7485b5bd055dbdcd9964929c98872f572f94b697d0275560feb9f54d90280407a26d52b1f34",
+    "token": "28360a355114aa459d0b5bea17661d0c5eb5a72c36e44667503414b25b03b58c",
+    "created": 1777784700098
+  }
+}
