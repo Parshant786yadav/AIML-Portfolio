@@ -698,7 +698,8 @@ body.admin-mode .exp-item:hover > .admin-delete-btn,
 body.admin-mode .project-card:hover > .admin-delete-btn,
 body.admin-mode .edu-item:hover > .admin-delete-btn,
 body.admin-mode .cert-card:hover > .admin-delete-btn,
-body.admin-mode .skill-row:hover > .admin-delete-btn { opacity: 1; }
+body.admin-mode .skill-row:hover > .admin-delete-btn,
+body.admin-mode .social-btn:hover > .admin-delete-btn { opacity: 1; }
 .admin-delete-btn:hover { transform: scale(1.12); background: hsl(0 72% 42%); opacity: 1 !important; }
 
 .admin-add-btn {
@@ -832,7 +833,20 @@ body.admin-mode .cert-grid .admin-add-btn { display: flex; }
   display: flex; align-items: center; justify-content: center;
   opacity: 0; transition: opacity 0.15s;
 }
-body.admin-mode .icon-link:hover .admin-link-edit { opacity: 1; }
+body.admin-mode .icon-link:hover .admin-link-edit,
+body.admin-mode .exp-company:hover .admin-link-edit,
+body.admin-mode .social-btn:hover .admin-link-edit,
+body.admin-mode .lc-profile:hover .admin-link-edit { opacity: 1; }
+
+/* Cert card URL edit button — wider pill style */
+body.admin-mode .cert-card .admin-link-edit {
+  top: auto; right: 4px; bottom: 4px;
+  width: auto; height: 18px; border-radius: 4px;
+  padding: 0 6px; font-size: 9px; letter-spacing: 0.04em;
+  opacity: 0;
+}
+body.admin-mode .cert-card:hover .admin-link-edit { opacity: 1; }
+
 .admin-link-edit:hover { opacity: 1 !important; background: hsl(220 80% 45%); }
 
 .admin-link-add {
@@ -843,6 +857,24 @@ body.admin-mode .icon-link:hover .admin-link-edit { opacity: 1; }
   transition: all 0.15s; flex-shrink: 0;
 }
 .admin-link-add:hover { border-color: hsl(142 71% 45%); color: hsl(142 71% 45%); }
+
+/* ─── Social links admin mode ─── */
+body.admin-mode .social-btn { cursor: default; }
+body.admin-mode .social-links .admin-add-btn {
+  width: auto; padding: 5px 12px; margin-top: 0; font-size: 11px;
+}
+body.admin-mode .social-label-span { outline: none; }
+body.admin-mode .social-label-span:focus { outline: 1px dashed hsl(142 71% 45% / 0.6); border-radius: 2px; }
+
+/* ─── LeetCode admin mode ─── */
+body.admin-mode .lc-username[contenteditable="true"],
+body.admin-mode .lc-val[contenteditable="true"] {
+  outline: 1px dashed hsl(142 71% 45% / 0.5); border-radius: 3px; min-width: 20px;
+}
+body.admin-mode .lc-username[contenteditable="true"]:focus,
+body.admin-mode .lc-val[contenteditable="true"]:focus { outline: 1px solid hsl(142 71% 45%); }
+body.admin-mode .lc-profile { position: relative; }
+body.admin-mode .lc-bar-fill { position: relative; }
 
 /* ─── Resume admin controls ─── */
 .admin-resume-ctrl {

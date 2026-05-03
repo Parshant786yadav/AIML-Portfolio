@@ -277,6 +277,8 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     'edu-list':      '.edu-list',
     'cert-grid':     '.cert-grid',
     'skills-list':   '.skills-list',
+    'social-links':  '.social-links',
+    'lc-card':       '.lc-card',
   };
   const LIST_SELS = Object.values(LIST_CONTAINERS);
   let loadedPhotoUrl = null, newPhotoUrl = null;
@@ -293,6 +295,8 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
       Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
         if (data[key]) { const el = document.querySelector(sel); if (el) el.innerHTML = data[key]; }
       });
+      // Re-observe bar fills after lc-card innerHTML may have been replaced
+      document.querySelectorAll('.lc-bar-fill').forEach(el => barObserver.observe(el));
       if (data['profile-photo']) {
         loadedPhotoUrl = data['profile-photo'];
         const img = document.querySelector('.avatar img');
@@ -690,11 +694,43 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
         if (!item.querySelector('.admin-delete-btn')) item.appendChild(mkDelete(item, 'Remove experience'));
         item.querySelectorAll('.exp-role,.exp-period,.exp-loc,.exp-desc').forEach(editable);
         injectTagControls(item.querySelector('.tags'));
+        item.querySelectorAll('.exp-company').forEach(link => {
+          editable(link);
+          link.style.position = 'relative';
+          if (!link.querySelector('.admin-link-edit')) {
+            const btn = document.createElement('button');
+            btn.className = `admin-link-edit ${AC}`; btn.title = 'Edit company URL'; btn.innerHTML = '✎';
+            btn.addEventListener('click', e => {
+              e.preventDefault(); e.stopPropagation();
+              const cur = link.getAttribute('href') || '';
+              const url = prompt('Company website URL (leave empty for no link):', cur);
+              if (url === null) return;
+              link.href = url.trim() || '#';
+            });
+            link.appendChild(btn);
+          }
+        });
       });
       if (!expList.querySelector('.admin-add-btn')) expList.appendChild(mkAdd('Add Experience', () => {
         const item = makeExpItem(); item.style.position = 'relative';
         item.appendChild(mkDelete(item, 'Remove experience'));
         injectTagControls(item.querySelector('.tags'));
+        item.querySelectorAll('.exp-company').forEach(link => {
+          editable(link);
+          link.style.position = 'relative';
+          if (!link.querySelector('.admin-link-edit')) {
+            const btn = document.createElement('button');
+            btn.className = `admin-link-edit ${AC}`; btn.title = 'Edit company URL'; btn.innerHTML = '✎';
+            btn.addEventListener('click', e => {
+              e.preventDefault(); e.stopPropagation();
+              const cur = link.getAttribute('href') || '';
+              const url = prompt('Company website URL:', cur);
+              if (url === null) return;
+              link.href = url.trim() || '#';
+            });
+            link.appendChild(btn);
+          }
+        });
         expList.insertBefore(item, expList.querySelector('.admin-add-btn'));
         item.querySelector('[contenteditable]')?.focus();
       }));
@@ -743,10 +779,32 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
         card.style.position = 'relative';
         if (!card.querySelector('.admin-delete-btn')) card.appendChild(mkDelete(card, 'Remove certificate'));
         card.querySelectorAll('.cert-title,.cert-issuer').forEach(editable);
+        if (!card.querySelector('.admin-link-edit')) {
+          const btn = document.createElement('button');
+          btn.className = `admin-link-edit ${AC}`; btn.title = 'Edit certificate URL'; btn.innerHTML = '✎ URL';
+          btn.addEventListener('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            const cur = card.getAttribute('href') || '#';
+            const url = prompt('Certificate verification URL:', cur);
+            if (url === null) return;
+            card.href = url.trim() || '#';
+          });
+          card.appendChild(btn);
+        }
       });
       if (!certGrid.querySelector('.admin-add-btn')) certGrid.appendChild(mkAdd('Add Certificate', () => {
         const card = makeCertCard(); card.style.position = 'relative';
         card.appendChild(mkDelete(card, 'Remove certificate'));
+        const btn = document.createElement('button');
+        btn.className = `admin-link-edit ${AC}`; btn.title = 'Edit certificate URL'; btn.innerHTML = '✎ URL';
+        btn.addEventListener('click', e => {
+          e.preventDefault(); e.stopPropagation();
+          const cur = card.getAttribute('href') || '#';
+          const url = prompt('Certificate verification URL:', cur);
+          if (url === null) return;
+          card.href = url.trim() || '#';
+        });
+        card.appendChild(btn);
         certGrid.insertBefore(card, certGrid.querySelector('.admin-add-btn'));
         card.querySelector('[contenteditable]')?.focus();
       }));
@@ -771,13 +829,113 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
       }));
     }
 
+    /* Social Links */
+    const socialLinksDiv = document.querySelector('.social-links');
+    if (socialLinksDiv) {
+      socialLinksDiv.querySelectorAll('.social-btn').forEach(link => {
+        link.style.position = 'relative';
+        if (!link.querySelector('.social-label-span')) {
+          Array.from(link.childNodes).forEach(node => {
+            if (node.nodeType === 3 && node.textContent.trim()) {
+              const span = document.createElement('span');
+              span.className = 'social-label-span';
+              span.contentEditable = 'true';
+              span.spellcheck = false;
+              span.textContent = node.textContent;
+              node.replaceWith(span);
+            }
+          });
+        } else {
+          link.querySelector('.social-label-span').contentEditable = 'true';
+        }
+        if (!link.querySelector('.admin-link-edit')) {
+          const btn = document.createElement('button');
+          btn.className = `admin-link-edit ${AC}`; btn.title = 'Edit URL'; btn.innerHTML = '✎';
+          btn.addEventListener('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            const cur = link.getAttribute('href') || '';
+            const url = prompt('Enter URL for this link:', cur);
+            if (url === null) return;
+            link.href = url.trim();
+          });
+          link.appendChild(btn);
+        }
+        if (!link.querySelector('.admin-delete-btn')) link.appendChild(mkDelete(link, 'Remove link'));
+      });
+      if (!socialLinksDiv.querySelector('.admin-add-btn')) {
+        socialLinksDiv.appendChild(mkAdd('Add Link', () => {
+          const label = prompt('Link label (e.g. Twitter, Portfolio):'); if (!label?.trim()) return;
+          const url = prompt(`URL for "${label.trim()}":`); if (!url?.trim()) return;
+          const EXT_SVG2 = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+          const a = document.createElement('a');
+          a.href = url.trim(); a.target = '_blank'; a.rel = 'noopener noreferrer'; a.className = 'social-btn';
+          a.style.position = 'relative';
+          a.innerHTML = EXT_SVG2;
+          const lspan = document.createElement('span'); lspan.className = 'social-label-span';
+          lspan.contentEditable = 'true'; lspan.spellcheck = false; lspan.textContent = ' ' + label.trim();
+          a.appendChild(lspan);
+          const editBtn = document.createElement('button');
+          editBtn.className = `admin-link-edit ${AC}`; editBtn.title = 'Edit URL'; editBtn.innerHTML = '✎';
+          editBtn.addEventListener('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            const cur = a.getAttribute('href') || '';
+            const u = prompt('Enter URL:', cur);
+            if (u === null) return;
+            a.href = u.trim();
+          });
+          a.appendChild(editBtn);
+          a.appendChild(mkDelete(a, 'Remove link'));
+          socialLinksDiv.insertBefore(a, socialLinksDiv.querySelector('.admin-add-btn'));
+        }));
+      }
+    }
+
+    /* LeetCode */
+    const lcCard = document.querySelector('.lc-card');
+    if (lcCard) {
+      editable(lcCard.querySelector('.lc-username'));
+      lcCard.querySelectorAll('.lc-val').forEach(editable);
+      const lcProfile = lcCard.querySelector('.lc-profile');
+      if (lcProfile && !lcProfile.querySelector('.admin-link-edit')) {
+        lcProfile.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = `admin-link-edit ${AC}`; btn.title = 'Edit LeetCode profile URL'; btn.innerHTML = '✎';
+        btn.addEventListener('click', e => {
+          e.preventDefault(); e.stopPropagation();
+          const cur = lcProfile.getAttribute('href') || '';
+          const url = prompt('LeetCode profile URL:', cur);
+          if (url === null) return;
+          lcProfile.href = url.trim();
+        });
+        lcProfile.appendChild(btn);
+      }
+      lcCard.querySelectorAll('.lc-bar-fill').forEach(bar => {
+        if (bar.querySelector('.admin-bar-edit')) return;
+        bar.style.position = 'relative';
+        const btn = document.createElement('button');
+        btn.className = `admin-bar-edit ${AC}`;
+        btn.title = 'Edit bar %'; btn.textContent = '%';
+        btn.style.cssText = 'position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:9px;padding:1px 5px;background:var(--surface);border:1px solid var(--border);border-radius:3px;cursor:pointer;color:var(--text);line-height:1.4;';
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const cur = bar.dataset.pct || '0';
+          const val = prompt('Bar fill percentage (0–100):', cur);
+          if (val === null) return;
+          const n = Math.min(100, Math.max(0, parseInt(val) || 0));
+          bar.dataset.pct = String(n);
+          bar.style.width = n + '%';
+        });
+        bar.appendChild(btn);
+      });
+    }
+
     injectResumeControls();
   }
 
   function removeControls() {
     document.querySelectorAll('.' + AC).forEach(el => el.remove());
     document.querySelectorAll('[contenteditable="true"]').forEach(el => el.contentEditable = 'false');
-    document.querySelectorAll('.exp-item,.project-card,.edu-item,.cert-card,.skill-row,.skill-icon').forEach(el => {
+    document.querySelectorAll('.exp-item,.project-card,.edu-item,.cert-card,.skill-row,.skill-icon,.social-btn,.exp-company,.lc-profile,.lc-bar-fill').forEach(el => {
       el.style.removeProperty('position');
       if (!el.getAttribute('style')?.trim()) el.removeAttribute('style');
     });
