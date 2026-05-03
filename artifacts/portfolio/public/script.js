@@ -270,19 +270,43 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
 /* ─── Admin CMS ─── */
 (async function initAdmin() {
   const TOKEN_KEY = 'admin-token';
+  const AC = 'admin-injected'; // class for all injected admin elements
+  const LIST_CONTAINERS = {
+    'exp-list':      '.exp-list',
+    'projects-list': '.projects-list',
+    'edu-list':      '.edu-list',
+    'cert-grid':     '.cert-grid',
+    'skills-list':   '.skills-list',
+  };
+  const LIST_SELS = Object.values(LIST_CONTAINERS);
+  let loadedPhotoUrl = null, newPhotoUrl = null;
 
-  // Load saved content overrides
-  try {
-    const res = await fetch('/api/admin/content');
-    if (res.ok) {
+  function isInList(el) { return LIST_SELS.some(s => el.closest(s)); }
+
+  /* ── Load & apply saved overrides ── */
+  async function loadOverrides() {
+    try {
+      const res = await fetch('/api/admin/content');
+      if (!res.ok) return;
       const data = await res.json();
+      Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
+        if (data[key]) { const el = document.querySelector(sel); if (el) el.innerHTML = data[key]; }
+      });
+      if (data['profile-photo']) {
+        loadedPhotoUrl = data['profile-photo'];
+        const img = document.querySelector('.avatar img');
+        if (img) img.src = loadedPhotoUrl;
+      }
       Object.entries(data).forEach(([key, val]) => {
+        if (LIST_CONTAINERS[key] || key === 'profile-photo') return;
         const el = document.querySelector(`[data-editable="${key}"]`);
         if (el) el.innerHTML = val;
       });
-    }
-  } catch {}
+    } catch {}
+  }
+  await loadOverrides();
 
+  /* ── DOM refs ── */
   const adminLoginBtn   = document.getElementById('admin-login-btn');
   const adminModal      = document.getElementById('admin-modal');
   const adminModalClose = document.getElementById('admin-modal-close');
@@ -292,74 +316,353 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   const adminSaveBtn    = document.getElementById('admin-save-btn');
   const adminLogoutBtn  = document.getElementById('admin-logout-btn');
 
+  /* ── Helpers ── */
+  function editable(el) { if (!el) return; el.contentEditable = 'true'; el.spellcheck = false; }
+
+  function mkDelete(item, label) {
+    const btn = document.createElement('button');
+    btn.className = `admin-delete-btn ${AC}`;
+    btn.title = label || 'Remove'; btn.innerHTML = '&times;';
+    btn.addEventListener('click', () => {
+      item.style.transition = 'opacity 0.2s'; item.style.opacity = '0';
+      setTimeout(() => item.remove(), 230);
+    });
+    return btn;
+  }
+
+  function mkAdd(label, onClick) {
+    const btn = document.createElement('button');
+    btn.className = `admin-add-btn ${AC}`;
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> ${label}`;
+    btn.addEventListener('click', onClick);
+    return btn;
+  }
+
+  /* ── Tag × / + controls (for experience/project tags) ── */
+  function injectTagControls(container) {
+    if (!container) return;
+    container.querySelectorAll('.tag').forEach(tag => {
+      if (tag.querySelector('.admin-tag-delete')) return;
+      const del = document.createElement('button');
+      del.className = `admin-tag-delete ${AC}`; del.innerHTML = '&times;';
+      del.addEventListener('click', e => { e.stopPropagation(); tag.remove(); });
+      tag.appendChild(del);
+    });
+    if (container.querySelector('.admin-tag-add')) return;
+    const plus = document.createElement('button');
+    plus.className = `admin-tag-add ${AC}`; plus.textContent = '+ add';
+    plus.addEventListener('click', () => {
+      const name = prompt('Tag / skill name:'); if (!name?.trim()) return;
+      const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = name.trim();
+      const del = document.createElement('button');
+      del.className = `admin-tag-delete ${AC}`; del.innerHTML = '&times;';
+      del.addEventListener('click', e => { e.stopPropagation(); tag.remove(); });
+      tag.appendChild(del); container.insertBefore(tag, plus);
+    });
+    container.appendChild(plus);
+  }
+
+  /* ── Skill icon × / + controls ── */
+  function mkSkillIcon(name) {
+    const div = document.createElement('div'); div.className = 'skill-icon';
+    const key = name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9+#]/g, '');
+    const img = document.createElement('img'); img.alt = name; img.loading = 'lazy';
+    img.src = `https://skillicons.dev/icons?i=${key}`;
+    img.onerror = () => {
+      const box = document.createElement('div'); box.className = 'skill-box-text'; box.textContent = name;
+      img.replaceWith(box);
+    };
+    const lbl = document.createElement('span'); lbl.textContent = name;
+    div.appendChild(img); div.appendChild(lbl);
+    return div;
+  }
+
+  function injectSkillIconControls(iconsEl) {
+    if (!iconsEl) return;
+    iconsEl.querySelectorAll(':scope > .skill-icon').forEach(icon => {
+      if (icon.querySelector('.admin-skill-delete')) return;
+      icon.style.position = 'relative';
+      const del = document.createElement('button');
+      del.className = `admin-skill-delete ${AC}`; del.innerHTML = '&times;'; del.title = 'Remove skill';
+      del.addEventListener('click', e => { e.stopPropagation(); icon.remove(); });
+      icon.appendChild(del);
+    });
+    if (iconsEl.querySelector('.admin-skill-add')) return;
+    const plus = document.createElement('button');
+    plus.className = `admin-skill-add ${AC}`;
+    plus.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> add skill`;
+    plus.addEventListener('click', () => {
+      const name = prompt('Skill name (e.g. Python, React, Docker):'); if (!name?.trim()) return;
+      const icon = mkSkillIcon(name.trim()); icon.style.position = 'relative';
+      const del = document.createElement('button');
+      del.className = `admin-skill-delete ${AC}`; del.innerHTML = '&times;'; del.title = 'Remove skill';
+      del.addEventListener('click', e => { e.stopPropagation(); icon.remove(); });
+      icon.appendChild(del); iconsEl.insertBefore(icon, plus);
+    });
+    iconsEl.appendChild(plus);
+  }
+
+  /* ── New item templates ── */
+  function makeExpItem() {
+    const el = document.createElement('div'); el.className = 'exp-item';
+    el.innerHTML = `<div class="exp-letter" style="background:hsl(142 71% 45%/0.07);color:hsl(142 71% 45%);border:1px solid hsl(142 71% 45%/0.15)">N</div>
+      <div class="exp-body"><div class="exp-header"><div>
+        <h3 class="exp-role" contenteditable="true" spellcheck="false">New Role</h3>
+        <a href="#" class="exp-company" contenteditable="true" spellcheck="false">@ Company Name</a>
+      </div><div class="exp-right">
+        <span class="exp-period mono" contenteditable="true" spellcheck="false">Month YYYY – Month YYYY</span>
+        <span class="exp-loc" contenteditable="true" spellcheck="false">Location</span>
+      </div></div>
+      <p class="exp-desc" contenteditable="true" spellcheck="false">Describe your role and key accomplishments here...</p>
+      <div class="tags"><span class="tag">Skill</span></div></div>`;
+    return el;
+  }
+
+  function makeProjCard() {
+    const el = document.createElement('div'); el.className = 'project-card';
+    el.innerHTML = `<div class="project-header"><div><div class="project-title-row">
+        <h3 class="project-name" contenteditable="true" spellcheck="false">Project Name</h3>
+        <span class="project-badge" style="background:hsl(142 71% 45%/0.07);color:hsl(142 71% 45%);border:1px solid hsl(142 71% 45%/0.15)" contenteditable="true" spellcheck="false">Type</span>
+      </div>
+      <p class="project-subtitle mono" contenteditable="true" spellcheck="false">Brief one-line subtitle</p>
+      </div></div>
+      <p class="project-desc" contenteditable="true" spellcheck="false">Describe the project — what it does, how you built it, and its impact...</p>
+      <div class="project-footer">
+        <div class="tags"><span class="tag">Tech</span></div>
+        <span class="project-metric mono" contenteditable="true" spellcheck="false">Key metric or outcome</span>
+      </div>`;
+    return el;
+  }
+
+  function makeEduItem() {
+    const el = document.createElement('div'); el.className = 'edu-item';
+    el.innerHTML = `<div class="edu-left">
+        <h3 class="edu-degree" contenteditable="true" spellcheck="false">Degree / Course Name</h3>
+        <p class="edu-school" contenteditable="true" spellcheck="false">Institution Name</p>
+      </div><div class="edu-right">
+        <span class="edu-score mono primary-text" contenteditable="true" spellcheck="false">Score</span>
+        <span class="edu-period mono" contenteditable="true" spellcheck="false">YYYY – YYYY</span>
+      </div>`;
+    return el;
+  }
+
+  function makeCertCard() {
+    const el = document.createElement('a'); el.href = '#'; el.className = 'cert-card';
+    el.innerHTML = `<div class="cert-top"><div>
+        <h3 class="cert-title" contenteditable="true" spellcheck="false">Certificate Name</h3>
+        <p class="cert-issuer mono" contenteditable="true" spellcheck="false">Issuer</p>
+      </div><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cert-arrow"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></div>
+      <span class="tag tag-green" style="margin-top:8px">verified</span>`;
+    return el;
+  }
+
+  function makeSkillRow() {
+    const el = document.createElement('div'); el.className = 'skill-row';
+    el.innerHTML = `<span class="skill-label mono" contenteditable="true" spellcheck="false">Category</span>
+      <div class="skill-icons"><div class="skill-icon"><div class="skill-box-text">Skill</div><span>Skill</span></div></div>`;
+    return el;
+  }
+
+  /* ── Inject all admin controls into DOM ── */
+  function injectControls() {
+    /* Profile photo */
+    const avatarDiv = document.querySelector('.avatar');
+    if (avatarDiv && !avatarDiv.querySelector('.admin-photo-overlay')) {
+      const lbl = document.createElement('label');
+      lbl.className = `admin-photo-overlay ${AC}`;
+      lbl.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Change Photo</span>`;
+      const fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.style.display = 'none';
+      fi.addEventListener('change', e => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => { const img = avatarDiv.querySelector('img'); if (img) img.src = ev.target.result; newPhotoUrl = ev.target.result; };
+        reader.readAsDataURL(file);
+      });
+      lbl.appendChild(fi); avatarDiv.appendChild(lbl);
+    }
+
+    /* Experience */
+    const expList = document.querySelector('.exp-list');
+    if (expList) {
+      expList.querySelectorAll(':scope > .exp-item').forEach(item => {
+        item.style.position = 'relative';
+        if (!item.querySelector('.admin-delete-btn')) item.appendChild(mkDelete(item, 'Remove experience'));
+        item.querySelectorAll('.exp-role,.exp-period,.exp-loc,.exp-desc').forEach(editable);
+        injectTagControls(item.querySelector('.tags'));
+      });
+      if (!expList.querySelector('.admin-add-btn')) expList.appendChild(mkAdd('Add Experience', () => {
+        const item = makeExpItem(); item.style.position = 'relative';
+        item.appendChild(mkDelete(item, 'Remove experience'));
+        injectTagControls(item.querySelector('.tags'));
+        expList.insertBefore(item, expList.querySelector('.admin-add-btn'));
+        item.querySelector('[contenteditable]')?.focus();
+      }));
+    }
+
+    /* Projects */
+    const projList = document.querySelector('.projects-list');
+    if (projList) {
+      projList.querySelectorAll(':scope > .project-card').forEach(card => {
+        card.style.position = 'relative';
+        if (!card.querySelector('.admin-delete-btn')) card.appendChild(mkDelete(card, 'Remove project'));
+        card.querySelectorAll('.project-name,.project-badge,.project-subtitle,.project-desc,.project-metric').forEach(editable);
+        injectTagControls(card.querySelector('.tags'));
+      });
+      if (!projList.querySelector('.admin-add-btn')) projList.appendChild(mkAdd('Add Project', () => {
+        const card = makeProjCard(); card.style.position = 'relative';
+        card.appendChild(mkDelete(card, 'Remove project'));
+        injectTagControls(card.querySelector('.tags'));
+        projList.insertBefore(card, projList.querySelector('.admin-add-btn'));
+        card.querySelector('[contenteditable]')?.focus();
+      }));
+    }
+
+    /* Education */
+    const eduList = document.querySelector('.edu-list');
+    if (eduList) {
+      eduList.querySelectorAll(':scope > .edu-item').forEach(item => {
+        item.style.position = 'relative';
+        if (!item.querySelector('.admin-delete-btn')) item.appendChild(mkDelete(item, 'Remove education'));
+        item.querySelectorAll('.edu-degree,.edu-school,.edu-score,.edu-period').forEach(editable);
+      });
+      if (!eduList.querySelector('.admin-add-btn')) eduList.appendChild(mkAdd('Add Education', () => {
+        const item = makeEduItem(); item.style.position = 'relative';
+        item.appendChild(mkDelete(item, 'Remove education'));
+        eduList.insertBefore(item, eduList.querySelector('.admin-add-btn'));
+        item.querySelector('[contenteditable]')?.focus();
+      }));
+    }
+
+    /* Certificates */
+    const certGrid = document.querySelector('.cert-grid');
+    if (certGrid) {
+      certGrid.querySelectorAll(':scope > .cert-card').forEach(card => {
+        card.style.position = 'relative';
+        if (!card.querySelector('.admin-delete-btn')) card.appendChild(mkDelete(card, 'Remove certificate'));
+        card.querySelectorAll('.cert-title,.cert-issuer').forEach(editable);
+      });
+      if (!certGrid.querySelector('.admin-add-btn')) certGrid.appendChild(mkAdd('Add Certificate', () => {
+        const card = makeCertCard(); card.style.position = 'relative';
+        card.appendChild(mkDelete(card, 'Remove certificate'));
+        certGrid.insertBefore(card, certGrid.querySelector('.admin-add-btn'));
+        card.querySelector('[contenteditable]')?.focus();
+      }));
+    }
+
+    /* Skills */
+    const skillsList = document.querySelector('.skills-list');
+    if (skillsList) {
+      skillsList.querySelectorAll(':scope > .skill-row').forEach(row => {
+        row.style.position = 'relative';
+        if (!row.querySelector('.admin-delete-btn')) row.appendChild(mkDelete(row, 'Remove category'));
+        editable(row.querySelector('.skill-label'));
+        injectSkillIconControls(row.querySelector('.skill-icons'));
+      });
+      if (!skillsList.querySelector('.admin-add-btn')) skillsList.appendChild(mkAdd('Add Skill Category', () => {
+        const row = makeSkillRow(); row.style.position = 'relative';
+        row.appendChild(mkDelete(row, 'Remove category'));
+        editable(row.querySelector('.skill-label'));
+        injectSkillIconControls(row.querySelector('.skill-icons'));
+        skillsList.insertBefore(row, skillsList.querySelector('.admin-add-btn'));
+        row.querySelector('[contenteditable]')?.focus();
+      }));
+    }
+  }
+
+  function removeControls() {
+    document.querySelectorAll('.' + AC).forEach(el => el.remove());
+    document.querySelectorAll('[contenteditable="true"]').forEach(el => el.contentEditable = 'false');
+    document.querySelectorAll('.exp-item,.project-card,.edu-item,.cert-card,.skill-row,.skill-icon').forEach(el => {
+      el.style.removeProperty('position');
+      if (!el.getAttribute('style')?.trim()) el.removeAttribute('style');
+    });
+  }
+
+  /* ── Enter / exit admin mode ── */
   function enterAdminMode() {
     document.body.classList.add('admin-mode');
-    document.querySelectorAll('[data-editable]').forEach(el => {
-      el.contentEditable = 'true';
-      el.spellcheck = false;
-    });
+    document.querySelectorAll('[data-editable]').forEach(el => { if (!isInList(el)) editable(el); });
+    injectControls();
     adminToolbar.classList.add('visible');
     adminLoginBtn.style.display = 'none';
   }
 
   function exitAdminMode() {
     document.body.classList.remove('admin-mode');
-    document.querySelectorAll('[data-editable]').forEach(el => {
-      el.contentEditable = 'false';
-    });
+    removeControls();
     adminToolbar.classList.remove('visible');
     adminLoginBtn.style.display = '';
     sessionStorage.removeItem(TOKEN_KEY);
+    newPhotoUrl = null;
   }
 
-  // Restore session
   if (sessionStorage.getItem(TOKEN_KEY)) enterAdminMode();
 
+  /* ── Login modal events ── */
   adminLoginBtn.addEventListener('click', () => adminModal.classList.add('open'));
   adminModalClose.addEventListener('click', () => adminModal.classList.remove('open'));
   adminModal.addEventListener('click', e => { if (e.target === adminModal) adminModal.classList.remove('open'); });
 
   adminLoginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    adminLoginError.textContent = '';
+    e.preventDefault(); adminLoginError.textContent = '';
     const username = document.getElementById('admin-username').value.trim();
     const password = document.getElementById('admin-password').value;
     try {
       const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
       if (!res.ok) { adminLoginError.textContent = data.error || 'Invalid credentials.'; return; }
       sessionStorage.setItem(TOKEN_KEY, data.token);
-      adminModal.classList.remove('open');
-      adminLoginForm.reset();
-      enterAdminMode();
+      adminModal.classList.remove('open'); adminLoginForm.reset(); enterAdminMode();
     } catch { adminLoginError.textContent = 'Connection error. Try again.'; }
   });
 
+  /* ── Save ── */
   adminSaveBtn.addEventListener('click', async () => {
-    const token = sessionStorage.getItem(TOKEN_KEY);
-    if (!token) return;
+    const token = sessionStorage.getItem(TOKEN_KEY); if (!token) return;
     const content = {};
+
+    // Non-list text fields
     document.querySelectorAll('[data-editable]').forEach(el => {
-      content[el.dataset.editable] = el.innerHTML;
+      if (!isInList(el)) content[el.dataset.editable] = el.innerHTML;
     });
+
+    // Profile photo
+    const photo = newPhotoUrl || loadedPhotoUrl;
+    if (photo) content['profile-photo'] = photo;
+
+    // List containers — clone DOM, strip admin UI, save innerHTML
+    Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
+      const el = document.querySelector(sel); if (!el) return;
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('.' + AC).forEach(x => x.remove());
+      clone.querySelectorAll('[contenteditable]').forEach(x => { x.removeAttribute('contenteditable'); x.removeAttribute('spellcheck'); });
+      clone.querySelectorAll('[style]').forEach(x => {
+        x.style.removeProperty('position');
+        if (!x.getAttribute('style')?.trim()) x.removeAttribute('style');
+      });
+      content[key] = clone.innerHTML;
+    });
+
     const orig = adminSaveBtn.textContent;
-    adminSaveBtn.textContent = 'Saving…';
-    adminSaveBtn.disabled = true;
+    adminSaveBtn.textContent = 'Saving…'; adminSaveBtn.disabled = true;
     try {
       const res = await fetch('/api/admin/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(content),
       });
-      adminSaveBtn.textContent = res.ok ? '✓ Saved & Live!' : 'Save Failed';
+      if (res.ok) {
+        adminSaveBtn.textContent = '✓ Saved & Live!';
+        if (newPhotoUrl) { loadedPhotoUrl = newPhotoUrl; newPhotoUrl = null; }
+      } else { adminSaveBtn.textContent = 'Save Failed'; }
     } catch { adminSaveBtn.textContent = 'Save Failed'; }
     setTimeout(() => { adminSaveBtn.textContent = orig; adminSaveBtn.disabled = false; }, 2200);
   });
 
+  /* ── Logout ── */
   adminLogoutBtn.addEventListener('click', async () => {
     const token = sessionStorage.getItem(TOKEN_KEY);
     if (token) await fetch('/api/admin/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }).catch(() => {});

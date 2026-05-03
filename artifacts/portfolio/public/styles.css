@@ -684,3 +684,87 @@ body.admin-mode [data-editable]:focus { outline: 1px solid hsl(142 71% 45%); bac
   border: none; cursor: pointer; transition: opacity 0.15s;
 }
 .admin-login-submit:hover { opacity: 0.85; }
+
+/* ─── Admin List Controls ─── */
+.admin-delete-btn {
+  position: absolute; top: 8px; right: 8px; z-index: 20;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: hsl(0 72% 50%); color: #fff; border: none;
+  font-size: 18px; line-height: 1; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s, transform 0.1s;
+}
+body.admin-mode .exp-item:hover > .admin-delete-btn,
+body.admin-mode .project-card:hover > .admin-delete-btn,
+body.admin-mode .edu-item:hover > .admin-delete-btn,
+body.admin-mode .cert-card:hover > .admin-delete-btn,
+body.admin-mode .skill-row:hover > .admin-delete-btn { opacity: 1; }
+.admin-delete-btn:hover { transform: scale(1.12); background: hsl(0 72% 42%); opacity: 1 !important; }
+
+.admin-add-btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; padding: 10px 16px; margin-top: 10px;
+  border-radius: 8px; border: 1.5px dashed hsl(142 71% 45% / 0.3);
+  background: none; color: hsl(142 71% 45% / 0.55);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  cursor: pointer; transition: all 0.15s;
+}
+.admin-add-btn:hover { border-color: hsl(142 71% 45% / 0.65); color: hsl(142 71% 45%); background: hsl(142 71% 45% / 0.04); }
+
+.tag { position: relative; display: inline-flex; align-items: center; }
+.admin-tag-delete {
+  position: absolute; top: -7px; right: -7px; z-index: 5;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: hsl(0 72% 50%); color: #fff; border: none;
+  font-size: 10px; line-height: 1; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+body.admin-mode .tag:hover .admin-tag-delete { opacity: 1; }
+.admin-tag-delete:hover { opacity: 1 !important; background: hsl(0 72% 42%); }
+
+.admin-tag-add {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 9999px;
+  border: 1px dashed hsl(142 71% 45% / 0.4); background: none;
+  color: hsl(142 71% 45% / 0.6);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  cursor: pointer; transition: all 0.15s; margin-left: 4px;
+}
+.admin-tag-add:hover { border-color: hsl(142 71% 45%); color: hsl(142 71% 45%); }
+
+.skill-icon { position: relative; }
+.admin-skill-delete {
+  position: absolute; top: -5px; right: -5px; z-index: 5;
+  width: 17px; height: 17px; border-radius: 50%;
+  background: hsl(0 72% 50%); color: #fff; border: none;
+  font-size: 11px; line-height: 1; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+body.admin-mode .skill-icon:hover .admin-skill-delete { opacity: 1; }
+.admin-skill-delete:hover { opacity: 1 !important; background: hsl(0 72% 42%); }
+
+.admin-skill-add {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 8px; height: 36px;
+  border: 1.5px dashed hsl(142 71% 45% / 0.35); background: none;
+  color: hsl(142 71% 45% / 0.6);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+}
+.admin-skill-add:hover { border-color: hsl(142 71% 45%); color: hsl(142 71% 45%); }
+
+.avatar { overflow: hidden; }
+.admin-photo-overlay {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: hsl(0 0% 0% / 0.6);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px; cursor: pointer; opacity: 0; transition: opacity 0.2s;
+  color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 10px; z-index: 10;
+}
+body.admin-mode .avatar:hover .admin-photo-overlay { opacity: 1; }
+
+body.admin-mode .cert-card { cursor: default; }
+body.admin-mode .cert-grid { display: block; }
+body.admin-mode .cert-grid .admin-add-btn { display: flex; }
