@@ -280,6 +280,7 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   };
   const LIST_SELS = Object.values(LIST_CONTAINERS);
   let loadedPhotoUrl = null, newPhotoUrl = null;
+  let loadedResumeUrl = null, resumeDataUrl = null;
 
   function isInList(el) { return LIST_SELS.some(s => el.closest(s)); }
 
@@ -297,8 +298,16 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
         const img = document.querySelector('.avatar img');
         if (img) img.src = loadedPhotoUrl;
       }
+      if (data['resume-pdf']) {
+        if (data['resume-pdf'] === 'removed') {
+          document.querySelectorAll('.resume-btn, .social-btn-resume').forEach(l => { l.removeAttribute('href'); l.style.opacity = '0.4'; });
+        } else {
+          loadedResumeUrl = data['resume-pdf'];
+          applyResumeToLinks(loadedResumeUrl);
+        }
+      }
       Object.entries(data).forEach(([key, val]) => {
-        if (LIST_CONTAINERS[key] || key === 'profile-photo') return;
+        if (LIST_CONTAINERS[key] || key === 'profile-photo' || key === 'resume-pdf') return;
         const el = document.querySelector(`[data-editable="${key}"]`);
         if (el) el.innerHTML = val;
       });
@@ -402,6 +411,89 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     iconsEl.appendChild(plus);
   }
 
+  /* ── Project link controls ── */
+  const GH_SVG  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>`;
+  const EXT_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+
+  function addLinkEditBtn(link) {
+    if (link.querySelector('.admin-link-edit')) return;
+    const btn = document.createElement('button');
+    btn.className = `admin-link-edit ${AC}`; btn.title = 'Edit URL'; btn.innerHTML = '✎';
+    btn.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      const cur = link.getAttribute('href') || '';
+      const url = prompt('Enter URL (leave empty to remove):', cur);
+      if (url === null) return;
+      if (!url.trim()) { link.remove(); return; }
+      link.href = url.trim();
+    });
+    link.appendChild(btn);
+  }
+
+  function injectProjectLinkControls(card) {
+    const linksDiv = card.querySelector('.project-links');
+    if (!linksDiv) return;
+    linksDiv.querySelectorAll('.icon-link').forEach(link => {
+      link.style.position = 'relative'; addLinkEditBtn(link);
+    });
+    if (linksDiv.querySelector('.admin-link-add')) return;
+    const addBtn = document.createElement('button');
+    addBtn.className = `admin-link-add ${AC}`; addBtn.title = 'Add link'; addBtn.innerHTML = '+';
+    addBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const isGH = confirm('GitHub link?\n\nOK = GitHub   Cancel = Live website');
+      const url = prompt(`Enter ${isGH ? 'GitHub' : 'live website'} URL:`);
+      if (!url?.trim()) return;
+      const a = document.createElement('a');
+      a.href = url.trim(); a.target = '_blank'; a.rel = 'noopener noreferrer'; a.className = 'icon-link';
+      a.innerHTML = isGH ? GH_SVG : EXT_SVG;
+      a.style.position = 'relative'; addLinkEditBtn(a);
+      linksDiv.insertBefore(a, addBtn);
+    });
+    linksDiv.appendChild(addBtn);
+  }
+
+  /* ── Resume upload controls ── */
+  function applyResumeToLinks(dataUrl) {
+    document.querySelectorAll('.resume-btn, .social-btn-resume').forEach(link => {
+      link.href = dataUrl; link.setAttribute('download', 'Parshant-Yadav-Resume.pdf'); link.style.opacity = '';
+    });
+  }
+
+  function injectResumeControls() {
+    if (document.querySelector('.admin-resume-ctrl')) return;
+    const navResume = document.querySelector('.resume-btn');
+    if (!navResume) return;
+    const ctrl = document.createElement('div');
+    ctrl.className = `admin-resume-ctrl ${AC}`;
+    ctrl.innerHTML = `
+      <label class="admin-resume-replace" title="Upload new PDF">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Replace PDF
+        <input type="file" accept=".pdf" style="display:none">
+      </label>
+      <button class="admin-resume-remove" title="Remove resume">✕ Remove</button>
+    `;
+    const fi = ctrl.querySelector('input[type=file]');
+    fi.addEventListener('change', e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        resumeDataUrl = ev.target.result;
+        applyResumeToLinks(resumeDataUrl);
+        ctrl.querySelector('.admin-resume-replace').classList.add('admin-resume-replace--done');
+      };
+      reader.readAsDataURL(file); fi.value = '';
+    });
+    ctrl.querySelector('.admin-resume-remove').addEventListener('click', () => {
+      resumeDataUrl = 'removed';
+      document.querySelectorAll('.resume-btn, .social-btn-resume').forEach(l => {
+        l.removeAttribute('href'); l.style.opacity = '0.4'; l.title = 'Resume removed';
+      });
+    });
+    navResume.insertAdjacentElement('afterend', ctrl);
+  }
+
   /* ── New item templates ── */
   function makeExpItem() {
     const el = document.createElement('div'); el.className = 'exp-item';
@@ -425,7 +517,7 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
         <span class="project-badge" style="background:hsl(142 71% 45%/0.07);color:hsl(142 71% 45%);border:1px solid hsl(142 71% 45%/0.15)" contenteditable="true" spellcheck="false">Type</span>
       </div>
       <p class="project-subtitle mono" contenteditable="true" spellcheck="false">Brief one-line subtitle</p>
-      </div></div>
+      </div><div class="project-links"></div></div>
       <p class="project-desc" contenteditable="true" spellcheck="false">Describe the project — what it does, how you built it, and its impact...</p>
       <div class="project-footer">
         <div class="tags"><span class="tag">Tech</span></div>
@@ -616,11 +708,13 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
         if (!card.querySelector('.admin-delete-btn')) card.appendChild(mkDelete(card, 'Remove project'));
         card.querySelectorAll('.project-name,.project-badge,.project-subtitle,.project-desc,.project-metric').forEach(editable);
         injectTagControls(card.querySelector('.tags'));
+        injectProjectLinkControls(card);
       });
       if (!projList.querySelector('.admin-add-btn')) projList.appendChild(mkAdd('Add Project', () => {
         const card = makeProjCard(); card.style.position = 'relative';
         card.appendChild(mkDelete(card, 'Remove project'));
         injectTagControls(card.querySelector('.tags'));
+        injectProjectLinkControls(card);
         projList.insertBefore(card, projList.querySelector('.admin-add-btn'));
         card.querySelector('[contenteditable]')?.focus();
       }));
@@ -676,6 +770,8 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
         row.querySelector('[contenteditable]')?.focus();
       }));
     }
+
+    injectResumeControls();
   }
 
   function removeControls() {
@@ -703,6 +799,7 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     adminLoginBtn.style.display = '';
     sessionStorage.removeItem(TOKEN_KEY);
     newPhotoUrl = null;
+    resumeDataUrl = null;
   }
 
   if (sessionStorage.getItem(TOKEN_KEY)) enterAdminMode();
@@ -741,6 +838,10 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     // Profile photo
     const photo = newPhotoUrl || loadedPhotoUrl;
     if (photo) content['profile-photo'] = photo;
+
+    // Resume
+    const resume = resumeDataUrl || loadedResumeUrl;
+    if (resume) content['resume-pdf'] = resume;
 
     // List containers — clone DOM, strip admin UI, save innerHTML
     Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {

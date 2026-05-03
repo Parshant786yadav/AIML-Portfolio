@@ -821,3 +821,48 @@ body.admin-mode .cert-grid .admin-add-btn { display: flex; }
   font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s;
 }
 .admin-crop-apply:hover { background: hsl(142 71% 38%); }
+
+/* ─── Project link admin controls ─── */
+.icon-link { position: relative; }
+.admin-link-edit {
+  position: absolute; top: -7px; right: -7px; z-index: 10;
+  width: 17px; height: 17px; border-radius: 50%;
+  background: hsl(220 80% 55%); color: #fff; border: none;
+  font-size: 10px; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+body.admin-mode .icon-link:hover .admin-link-edit { opacity: 1; }
+.admin-link-edit:hover { opacity: 1 !important; background: hsl(220 80% 45%); }
+
+.admin-link-add {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1.5px dashed hsl(142 71% 45% / 0.4); background: none;
+  color: hsl(142 71% 45% / 0.6); font-size: 16px; line-height: 1;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.admin-link-add:hover { border-color: hsl(142 71% 45%); color: hsl(142 71% 45%); }
+
+/* ─── Resume admin controls ─── */
+.admin-resume-ctrl {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-left: 8px; vertical-align: middle;
+}
+.admin-resume-replace {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 6px; cursor: pointer;
+  border: 1px solid hsl(142 71% 45% / 0.35);
+  color: hsl(142 71% 45% / 0.7); font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  transition: all 0.15s;
+}
+.admin-resume-replace:hover,
+.admin-resume-replace--done { border-color: hsl(142 71% 45%); color: hsl(142 71% 45%); }
+.admin-resume-remove {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 6px; cursor: pointer;
+  border: 1px solid hsl(0 70% 50% / 0.35);
+  background: none; color: hsl(0 70% 55% / 0.7);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; transition: all 0.15s;
+}
+.admin-resume-remove:hover { border-color: hsl(0 70% 50%); color: hsl(0 70% 55%); }
