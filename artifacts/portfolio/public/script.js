@@ -296,6 +296,12 @@ function toggleChat() {
 chatFab.addEventListener('click', toggleChat);
 chatClose.addEventListener('click', toggleChat);
 
+document.addEventListener('click', (e) => {
+  if (chatOpen && !chatPanel.contains(e.target) && !chatFab.contains(e.target)) {
+    toggleChat();
+  }
+});
+
 function appendMsg(html, role) {
   const msg    = document.createElement('div');
   msg.className = `chat-msg ${role}`;
