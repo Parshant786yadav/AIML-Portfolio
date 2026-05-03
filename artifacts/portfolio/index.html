@@ -501,11 +501,44 @@
     </div>
   </div>
 
-  <!-- User Edit FAB (shown on /p/:slug when not logged in) -->
-  <button class="user-edit-fab" id="user-edit-fab" style="display:none" title="Edit this portfolio">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-    Edit Portfolio
-  </button>
+  <!-- User Dashboard Panel (main site — shown after user login) -->
+  <div class="udash-overlay" id="udash-overlay"></div>
+  <aside class="udash-panel" id="udash-panel" aria-label="My Portfolio Dashboard">
+    <div class="udash-header">
+      <span class="udash-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        My Portfolio
+      </span>
+      <button class="udash-close" id="udash-close" aria-label="Close">✕</button>
+    </div>
+    <p class="udash-email-tag" id="udash-email-tag"></p>
+
+    <div id="udash-actions">
+      <button class="udash-btn udash-btn-edit" id="udash-edit-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit My Portfolio
+      </button>
+      <button class="udash-btn udash-btn-contacts" id="udash-contacts-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Contact Submissions
+        <span class="udash-badge" id="udash-badge" style="display:none">0</span>
+      </button>
+      <button class="udash-btn udash-btn-copy" id="udash-copy-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Copy My Portfolio Link
+      </button>
+      <button class="udash-btn udash-btn-logout" id="udash-logout-dash-btn">Logout</button>
+    </div>
+
+    <div id="udash-contacts-view" style="display:none">
+      <button class="udash-back-btn" id="udash-back-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
+      <h3 class="udash-contacts-heading">Contact Form Submissions</h3>
+      <div id="udash-contacts-list"></div>
+    </div>
+  </aside>
 
   <!-- User Link Reveal -->
   <div class="user-link-reveal" id="user-link-reveal">

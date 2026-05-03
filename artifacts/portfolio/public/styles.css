@@ -1136,3 +1136,131 @@ body.user-edit-mode [contenteditable]:hover:not(:focus) {
   outline-offset: 2px;
   border-radius: 3px;
 }
+
+/* ── User Dashboard Panel ── */
+.udash-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.udash-overlay.open { opacity: 1; pointer-events: all; }
+
+.udash-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 9001;
+  width: min(360px, 90vw);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column;
+  padding: 28px 24px;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+}
+.udash-panel.open { transform: translateX(0); }
+
+.udash-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.udash-title {
+  display: flex; align-items: center; gap: 7px;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.udash-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 16px; padding: 4px 6px;
+  border-radius: 5px; transition: background 0.15s, color 0.15s;
+  line-height: 1;
+}
+.udash-close:hover { background: var(--border); color: var(--text); }
+
+.udash-email-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: hsl(224 76% 55%); margin: 0 0 24px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+#udash-actions { display: flex; flex-direction: column; gap: 10px; }
+
+.udash-btn {
+  display: flex; align-items: center; gap: 9px;
+  padding: 12px 16px; border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+  text-align: left; width: 100%; position: relative;
+}
+.udash-btn:hover { transform: translateY(-1px); }
+.udash-btn-edit {
+  background: hsl(224 76% 46%); color: #fff; border-color: hsl(224 76% 46%);
+}
+.udash-btn-edit:hover { background: hsl(224 76% 40%); }
+
+.udash-btn-contacts {
+  background: var(--bg); color: var(--text);
+}
+.udash-btn-contacts:hover { background: var(--surface-raised, var(--border)); }
+
+.udash-btn-copy {
+  background: transparent; color: var(--text-muted);
+}
+.udash-btn-copy:hover { color: var(--text); background: var(--bg); }
+
+.udash-btn-logout {
+  background: transparent; color: hsl(0 65% 52%); border-color: hsl(0 65% 52% / 0.3);
+  margin-top: 4px;
+}
+.udash-btn-logout:hover { background: hsl(0 65% 52% / 0.08); }
+
+.udash-badge {
+  margin-left: auto;
+  background: hsl(224 76% 46%); color: #fff;
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px;
+}
+
+/* Contacts view */
+.udash-back-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: none; cursor: pointer;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--text-muted); padding: 0; margin-bottom: 14px;
+  transition: color 0.15s;
+}
+.udash-back-btn:hover { color: var(--text); }
+
+.udash-contacts-heading {
+  font-size: 13px; font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  margin: 0 0 14px; color: var(--text);
+}
+
+.udash-contact-card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; margin-bottom: 10px;
+}
+.udash-contact-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 4px;
+}
+.udash-contact-name {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  color: var(--text);
+}
+.udash-contact-date { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+.udash-contact-email {
+  display: block; font-size: 11px; color: hsl(224 76% 55%);
+  text-decoration: none; margin-bottom: 8px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.udash-contact-email:hover { text-decoration: underline; }
+.udash-contact-msg {
+  font-size: 12px; color: var(--text); margin: 0; line-height: 1.6;
+  white-space: pre-wrap; word-break: break-word;
+}
+.udash-loading, .udash-empty {
+  font-size: 12px; color: var(--text-muted); text-align: center;
+  padding: 24px 0; font-family: 'JetBrains Mono', monospace;
+}

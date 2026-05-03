@@ -261,22 +261,38 @@ function resetBtn() {
   submitText.textContent = 'send message';
 }
 
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   submitBtn.disabled = true;
   submitIcon.innerHTML = '<span class="spinner"></span>';
   submitText.textContent = 'sending...';
 
+  if (USER_SLUG) {
+    /* On a user portfolio page — route to user-specific API so owner can see submissions */
+    const name    = (form.querySelector('[name="from_name"]')?.value  || '').trim();
+    const email   = (form.querySelector('[name="reply_to"]')?.value   || '').trim();
+    const message = (form.querySelector('[name="message"]')?.value    || '').trim();
+    try {
+      const res = await fetch(`/api/users/contact/${USER_SLUG}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message }),
+      });
+      form.reset(); resetBtn();
+      if (res.ok) {
+        const ownerName = document.querySelector('[data-editable="profile-name"]')?.textContent.trim() || 'the portfolio owner';
+        toast.innerHTML = `<strong>Message sent!</strong> ${ownerName} will get back to you soon.`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 5000);
+      } else { showToast(false); }
+    } catch { resetBtn(); showToast(false); }
+    return;
+  }
+
+  /* Main portfolio — use EmailJS as before */
   emailjs.sendForm(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, form)
-    .then(() => {
-      form.reset();
-      resetBtn();
-      showToast(true);
-    })
-    .catch(() => {
-      resetBtn();
-      showToast(false);
-    });
+    .then(() => { form.reset(); resetBtn(); showToast(true); })
+    .catch(() => { resetBtn(); showToast(false); });
 });
 
 /* ─── Chatbot ─── */
@@ -1164,63 +1180,186 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
    User Portfolio CMS
    ═══════════════════════════════════════════════════════════ */
 (async function initUserCMS() {
-  const U_TOKEN = 'user-token';
-  const U_SLUG  = 'user-slug';
-  const U_EMAIL = 'user-email';
+  const U_TOKEN    = 'user-token';
+  const U_SLUG     = 'user-slug';
+  const U_EMAIL    = 'user-email';
+  const U_EDITFLAG = 'user-edit-flag';
 
   const userModal       = document.getElementById('user-modal');
   const userModalClose  = document.getElementById('user-modal-close');
   const userAuthForm    = document.getElementById('user-auth-form');
-  const userAuthError   = document.getElementById('user-auth-error');
-  const userAuthSubmit  = document.getElementById('user-auth-submit');
-  const userTabLogin    = document.getElementById('user-tab-login');
-  const userTabReg      = document.getElementById('user-tab-register');
-  const userEmailInput  = document.getElementById('user-email');
-  const userPassInput   = document.getElementById('user-password');
-  const userPortfolioBtn= document.getElementById('user-portfolio-btn');
-  const userToolbar     = document.getElementById('user-toolbar');
-  const userToolbarEmail= document.getElementById('user-toolbar-email');
-  const userSaveBtn     = document.getElementById('user-save-btn');
-  const userLogoutBtn   = document.getElementById('user-logout-btn');
-  const userLinkReveal  = document.getElementById('user-link-reveal');
-  const userLinkUrl     = document.getElementById('user-link-url');
-  const userLinkCopy    = document.getElementById('user-link-copy');
-  const userLinkClose   = document.getElementById('user-link-close');
+  const userAuthError    = document.getElementById('user-auth-error');
+  const userAuthSubmit   = document.getElementById('user-auth-submit');
+  const userTabLogin     = document.getElementById('user-tab-login');
+  const userTabReg       = document.getElementById('user-tab-register');
+  const userPortfolioBtn = document.getElementById('user-portfolio-btn');
+
+  /* Toolbar — only shown while editing on /p/:slug */
+  const userToolbar      = document.getElementById('user-toolbar');
+  const userToolbarEmail = document.getElementById('user-toolbar-email');
+  const userSaveBtn      = document.getElementById('user-save-btn');
+  const userLogoutBtn    = document.getElementById('user-logout-btn');
+  const userLinkReveal   = document.getElementById('user-link-reveal');
+  const userLinkUrl      = document.getElementById('user-link-url');
+  const userLinkCopy     = document.getElementById('user-link-copy');
+  const userLinkClose    = document.getElementById('user-link-close');
+
+  /* Dashboard panel refs */
+  const udashOverlay      = document.getElementById('udash-overlay');
+  const udashPanel        = document.getElementById('udash-panel');
+  const udashClose        = document.getElementById('udash-close');
+  const udashEmailTag     = document.getElementById('udash-email-tag');
+  const udashActions      = document.getElementById('udash-actions');
+  const udashEditBtn      = document.getElementById('udash-edit-btn');
+  const udashContactsBtn  = document.getElementById('udash-contacts-btn');
+  const udashBadge        = document.getElementById('udash-badge');
+  const udashCopyBtn      = document.getElementById('udash-copy-btn');
+  const udashLogoutBtn    = document.getElementById('udash-logout-dash-btn');
+  const udashContactsView = document.getElementById('udash-contacts-view');
+  const udashContactsList = document.getElementById('udash-contacts-list');
+  const udashBackBtn      = document.getElementById('udash-back-btn');
 
   let isRegister = false;
+  let dashSlug   = null;
 
+  /* ── Helpers ── */
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtDate(s) {
+    try {
+      return new Date(s).toLocaleDateString('en-IN', {
+        day:'numeric', month:'short', year:'numeric',
+        hour:'2-digit', minute:'2-digit',
+      });
+    } catch { return s; }
+  }
+
+  /* ── Login modal ── */
   function setMode(reg) {
     isRegister = reg;
     userTabLogin?.classList.toggle('active', !reg);
-    userTabReg?.classList.toggle('active', reg);
+    userTabReg?.classList.toggle('active',   reg);
     if (userAuthSubmit) userAuthSubmit.textContent = reg ? 'Create Account' : 'Login';
-    if (userAuthError) userAuthError.textContent = '';
+    if (userAuthError)  userAuthError.textContent  = '';
   }
-
   function openModal() { userModal?.classList.add('open'); }
   function closeModal() {
     userModal?.classList.remove('open');
     if (userAuthError) userAuthError.textContent = '';
     userAuthForm?.reset();
   }
-
-  userTabLogin?.addEventListener('click', () => setMode(false));
-  userTabReg?.addEventListener('click',   () => setMode(true));
+  userTabLogin?.addEventListener('click',   () => setMode(false));
+  userTabReg?.addEventListener('click',     () => setMode(true));
   userModalClose?.addEventListener('click', closeModal);
   userModal?.addEventListener('click', e => { if (e.target === userModal) closeModal(); });
+
+  /* ── Dashboard panel ── */
+  function openDash(email, slug) {
+    dashSlug = slug;
+    if (udashEmailTag) udashEmailTag.textContent = email;
+    udashOverlay?.classList.add('open');
+    udashPanel?.classList.add('open');
+    if (udashContactsView) udashContactsView.style.display = 'none';
+    if (udashActions)      udashActions.style.display      = '';
+    loadContactCount();
+  }
+  function closeDash() {
+    udashOverlay?.classList.remove('open');
+    udashPanel?.classList.remove('open');
+  }
+
+  udashClose?.addEventListener('click',   closeDash);
+  udashOverlay?.addEventListener('click', closeDash);
+
+  udashBackBtn?.addEventListener('click', () => {
+    if (udashContactsView) udashContactsView.style.display = 'none';
+    if (udashActions)      udashActions.style.display      = '';
+  });
+
+  async function loadContactCount() {
+    const tok = localStorage.getItem(U_TOKEN); if (!tok) return;
+    try {
+      const res  = await fetch('/api/users/contacts', { headers: { 'Authorization': `Bearer ${tok}` } });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (udashBadge && data.length > 0) {
+        udashBadge.textContent  = data.length;
+        udashBadge.style.display = '';
+      }
+    } catch {}
+  }
+
+  /* Edit portfolio — set sessionStorage flag then navigate to /p/:slug */
+  udashEditBtn?.addEventListener('click', () => {
+    if (!dashSlug) return;
+    sessionStorage.setItem(U_EDITFLAG, dashSlug);
+    closeDash();
+    window.location.href = `/p/${dashSlug}`;
+  });
+
+  /* View contact submissions */
+  udashContactsBtn?.addEventListener('click', async () => {
+    if (udashActions)      udashActions.style.display      = 'none';
+    if (udashContactsView) udashContactsView.style.display = '';
+    if (udashContactsList) udashContactsList.innerHTML = '<p class="udash-loading">Loading…</p>';
+    const tok = localStorage.getItem(U_TOKEN); if (!tok) return;
+    try {
+      const res  = await fetch('/api/users/contacts', { headers: { 'Authorization': `Bearer ${tok}` } });
+      const data = await res.json();
+      if (!Array.isArray(data) || !data.length) {
+        udashContactsList.innerHTML = '<p class="udash-empty">No contact submissions yet.<br>Share your portfolio link!</p>';
+      } else {
+        udashContactsList.innerHTML = data.map(c => `
+          <div class="udash-contact-card">
+            <div class="udash-contact-top">
+              <strong class="udash-contact-name">${escHtml(c.name)}</strong>
+              <span class="udash-contact-date">${fmtDate(c.created_at)}</span>
+            </div>
+            <a href="mailto:${escHtml(c.email)}" class="udash-contact-email">${escHtml(c.email)}</a>
+            <p class="udash-contact-msg">${escHtml(c.message)}</p>
+          </div>`).join('');
+      }
+    } catch {
+      if (udashContactsList) udashContactsList.innerHTML = '<p class="udash-empty">Failed to load. Try again.</p>';
+    }
+  });
+
+  /* Copy portfolio link */
+  udashCopyBtn?.addEventListener('click', () => {
+    if (!dashSlug) return;
+    const link = `${window.location.origin}/p/${dashSlug}`;
+    navigator.clipboard.writeText(link).then(() => {
+      const origHTML = udashCopyBtn.innerHTML;
+      udashCopyBtn.textContent = '✓ Link Copied!';
+      setTimeout(() => { udashCopyBtn.innerHTML = origHTML; }, 2000);
+    });
+  });
+
+  /* Logout from dashboard */
+  udashLogoutBtn?.addEventListener('click', async () => {
+    const tok = localStorage.getItem(U_TOKEN);
+    if (tok) await fetch('/api/users/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${tok}` } }).catch(() => {});
+    localStorage.removeItem(U_TOKEN);
+    localStorage.removeItem(U_SLUG);
+    localStorage.removeItem(U_EMAIL);
+    closeDash();
+    window.location.reload();
+  });
 
   /* ── Auth form submit ── */
   userAuthForm?.addEventListener('submit', async e => {
     e.preventDefault();
     if (userAuthError) userAuthError.textContent = '';
-    const email    = (userEmailInput?.value || '').trim();
-    const password = userPassInput?.value || '';
+    const email    = (document.getElementById('user-email')?.value    || '').trim();
+    const password = (document.getElementById('user-password')?.value || '');
     const endpoint = isRegister ? '/api/users/register' : '/api/users/login';
     if (userAuthSubmit) { userAuthSubmit.disabled = true; userAuthSubmit.textContent = isRegister ? 'Creating…' : 'Logging in…'; }
     try {
       const res  = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
@@ -1229,122 +1368,110 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
       localStorage.setItem(U_SLUG,  data.slug);
       localStorage.setItem(U_EMAIL, data.email);
       closeModal();
-      window.location.href = `/p/${data.slug}`;
+      if (!USER_SLUG) {
+        /* On main site — open dashboard panel, update button */
+        openDash(data.email, data.slug);
+        if (userPortfolioBtn) {
+          userPortfolioBtn.textContent = 'My Dashboard';
+          userPortfolioBtn.onclick = null;
+          userPortfolioBtn.addEventListener('click', () => openDash(data.email, data.slug));
+        }
+      } else {
+        window.location.reload();
+      }
     } catch { if (userAuthError) userAuthError.textContent = 'Connection error. Try again.'; }
     finally {
       if (userAuthSubmit) { userAuthSubmit.disabled = false; userAuthSubmit.textContent = isRegister ? 'Create Account' : 'Login'; }
     }
   });
 
-  /* ── On main route: show "Create your portfolio" button ── */
+  /* ══════════════════════════════════════════════════════
+     MAIN SITE  (not a user portfolio page)
+     Show login button or "My Dashboard" button in nav
+     ══════════════════════════════════════════════════════ */
   if (!USER_SLUG) {
-    if (userPortfolioBtn) {
-      userPortfolioBtn.style.display = '';
-      userPortfolioBtn.addEventListener('click', () => { setMode(false); openModal(); });
+    if (userPortfolioBtn) userPortfolioBtn.style.display = '';
+    const token      = localStorage.getItem(U_TOKEN);
+    const savedSlug  = localStorage.getItem(U_SLUG);
+    const savedEmail = localStorage.getItem(U_EMAIL);
+    if (token && savedSlug) {
+      try {
+        const res = await fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+          const me = await res.json();
+          if (userPortfolioBtn) {
+            userPortfolioBtn.textContent = 'My Dashboard';
+            userPortfolioBtn.addEventListener('click', () => openDash(me.email, me.slug));
+          }
+        } else {
+          /* Token expired */
+          localStorage.removeItem(U_TOKEN); localStorage.removeItem(U_SLUG); localStorage.removeItem(U_EMAIL);
+          userPortfolioBtn?.addEventListener('click', () => { setMode(false); openModal(); });
+        }
+      } catch { userPortfolioBtn?.addEventListener('click', () => { setMode(false); openModal(); }); }
+    } else {
+      userPortfolioBtn?.addEventListener('click', () => { setMode(false); openModal(); });
     }
     return;
   }
 
-  /* ── On /p/:slug route ── */
-  // Update page title
+  /* ══════════════════════════════════════════════════════
+     USER PORTFOLIO PAGE  /p/:slug
+     — Always read-only for visitors
+     — Edit mode activated ONLY via "Edit My Portfolio"
+       button in dashboard (sets sessionStorage flag)
+     ══════════════════════════════════════════════════════ */
+
+  /* Update page title */
   const nameEl = document.querySelector('[data-editable="profile-name"]');
   if (nameEl?.textContent.trim()) document.title = nameEl.textContent.trim() + ' — Portfolio';
 
-  const token     = localStorage.getItem(U_TOKEN);
-  const savedSlug = localStorage.getItem(U_SLUG);
-  const email     = localStorage.getItem(U_EMAIL);
+  /* Check for edit flag set by dashboard */
+  const editFlag = sessionStorage.getItem(U_EDITFLAG);
+  if (editFlag === USER_SLUG) {
+    sessionStorage.removeItem(U_EDITFLAG);
+    const token     = localStorage.getItem(U_TOKEN);
+    const savedSlug = localStorage.getItem(U_SLUG);
+    const email     = localStorage.getItem(U_EMAIL);
+    if (token && savedSlug === USER_SLUG) {
+      try {
+        const res = await fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) enterUserEditMode(email);
+        /* if token invalid → just show read-only, no redirect */
+      } catch {}
+    }
+  }
+  /* No edit flag → pure read-only, no edit UI shown */
 
+  /* ── Edit mode internals ── */
   function clearSession() {
-    localStorage.removeItem(U_TOKEN);
-    localStorage.removeItem(U_SLUG);
-    localStorage.removeItem(U_EMAIL);
+    localStorage.removeItem(U_TOKEN); localStorage.removeItem(U_SLUG); localStorage.removeItem(U_EMAIL);
   }
 
   function enterUserEditMode(em) {
-    // The admin IIFE is async — wait for it to finish setting up the editing API
-    if (!window._adminEditAPI) {
-      setTimeout(() => enterUserEditMode(em), 80);
-      return;
-    }
+    if (!window._adminEditAPI) { setTimeout(() => enterUserEditMode(em), 80); return; }
     const api = window._adminEditAPI;
-
-    // Reuse admin-mode CSS class — gives all the same visual edit styles
     document.body.classList.add('admin-mode');
-
-    // Make non-list data-editable fields editable (same as admin)
     document.querySelectorAll('[data-editable]').forEach(el => {
       if (!api.isInList(el)) { el.contentEditable = 'true'; el.spellcheck = false; }
     });
-
-    // Inject FULL admin controls: photo upload, resume, add/remove items,
-    // tag controls, social link URL editor, LeetCode bar %, skill icons, etc.
     api.injectControls();
-
-    // Show USER toolbar (not admin toolbar)
-    if (userToolbar) userToolbar.classList.add('visible');
+    if (userToolbar)      userToolbar.classList.add('visible');
     if (userToolbarEmail) userToolbarEmail.textContent = em || '';
-
-    // Make sure admin toolbar stays hidden
     document.getElementById('admin-toolbar')?.classList.remove('visible');
-
-    // Hide FAB — user is now in edit mode
-    const fab = document.getElementById('user-edit-fab');
-    if (fab) fab.style.display = 'none';
-  }
-
-  if (token && savedSlug === USER_SLUG) {
-    try {
-      const res = await fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
-      if (res.ok) {
-        enterUserEditMode(email);
-      } else {
-        clearSession();
-        showEditPrompt();
-      }
-    } catch { clearSession(); showEditPrompt(); }
-  } else {
-    showEditPrompt();
-  }
-
-  function showEditPrompt() {
-    // Show prominent floating "Edit" FAB on the live portfolio link
-    const fab = document.getElementById('user-edit-fab');
-    if (fab) {
-      fab.style.display = '';
-      fab.addEventListener('click', () => { setMode(false); openModal(); });
-    }
-    // Also surface the footer button
-    if (userPortfolioBtn) {
-      userPortfolioBtn.style.display = '';
-      userPortfolioBtn.textContent = 'Edit this portfolio';
-      userPortfolioBtn.addEventListener('click', () => { setMode(false); openModal(); });
-    }
   }
 
   /* ── Save & Get Link ── */
   userSaveBtn?.addEventListener('click', async () => {
-    const tok = localStorage.getItem(U_TOKEN);
-    if (!tok) return;
-    const api = window._adminEditAPI;
-    if (!api) return;
-
+    const tok = localStorage.getItem(U_TOKEN); if (!tok) return;
+    const api = window._adminEditAPI;           if (!api) return;
     const { LIST_CONTAINERS, AC, isInList } = api;
     const content = {};
-
-    // Non-list text fields (identical snapshot to admin save)
     document.querySelectorAll('[data-editable]').forEach(el => {
       if (!isInList(el)) content[el.dataset.editable] = el.innerHTML;
     });
-
-    // Profile photo
-    const photo = api.getPhoto();
-    if (photo) content['profile-photo'] = photo;
-
-    // Resume PDF
-    const resume = api.getResume();
-    if (resume) content['resume-pdf'] = resume;
-
-    // List containers — clone, strip all admin UI, save clean innerHTML
+    const photo  = api.getPhoto();  if (photo)  content['profile-photo'] = photo;
+    const resume = api.getResume(); if (resume) content['resume-pdf']    = resume;
     Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
       const el = document.querySelector(sel); if (!el) return;
       const clone = el.cloneNode(true);
@@ -1356,7 +1483,6 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
       });
       content[key] = clone.innerHTML;
     });
-
     const orig = userSaveBtn.textContent;
     userSaveBtn.textContent = 'Saving…'; userSaveBtn.disabled = true;
     try {
@@ -1390,7 +1516,7 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     if (userLinkClose) userLinkClose.onclick = () => userLinkReveal.classList.remove('open');
   }
 
-  /* ── Logout ── */
+  /* ── Logout from edit toolbar ── */
   userLogoutBtn?.addEventListener('click', async () => {
     const tok = localStorage.getItem(U_TOKEN);
     if (tok) await fetch('/api/users/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${tok}` } }).catch(() => {});

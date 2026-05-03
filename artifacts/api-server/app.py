@@ -53,6 +53,16 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS contact_submissions (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_slug  TEXT NOT NULL,
+                name       TEXT NOT NULL,
+                email      TEXT NOT NULL,
+                message    TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
 
 
 def hash_password(pw):
@@ -227,6 +237,45 @@ def save_user_content():
     with get_db() as conn:
         slug = conn.execute("SELECT slug FROM users WHERE id=?", (user_id,)).fetchone()["slug"]
     return jsonify({"ok": True, "slug": slug})
+
+
+# ── User Contact Submissions ──────────────────────────────────────────────────
+
+@app.route("/api/users/contact/<slug>", methods=["POST"])
+def submit_user_contact(slug):
+    data    = request.get_json(silent=True) or {}
+    name    = (data.get("name")    or "").strip()
+    email   = (data.get("email")   or "").strip()
+    message = (data.get("message") or "").strip()
+    if not name or not email or not message:
+        return jsonify({"error": "All fields required"}), 400
+    with get_db() as conn:
+        user = conn.execute("SELECT id FROM users WHERE slug=?", (slug,)).fetchone()
+        if not user:
+            return jsonify({"error": "Portfolio not found"}), 404
+        conn.execute(
+            "INSERT INTO contact_submissions (user_slug, name, email, message) VALUES (?,?,?,?)",
+            (slug, name, email, message),
+        )
+    return jsonify({"ok": True})
+
+
+@app.route("/api/users/contacts", methods=["GET"])
+def get_user_contacts():
+    token   = request.headers.get("Authorization", "").replace("Bearer ", "")
+    user_id = get_user_id(token)
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+    with get_db() as conn:
+        row  = conn.execute("SELECT slug FROM users WHERE id=?", (user_id,)).fetchone()
+        if not row:
+            return jsonify({"error": "Not found"}), 404
+        rows = conn.execute(
+            "SELECT id, name, email, message, created_at FROM contact_submissions "
+            "WHERE user_slug=? ORDER BY created_at DESC",
+            (row["slug"],),
+        ).fetchall()
+    return jsonify([dict(r) for r in rows])
 
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
