@@ -1261,8 +1261,12 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   }
 
   function enterUserEditMode(em) {
+    // The admin IIFE is async — wait for it to finish setting up the editing API
+    if (!window._adminEditAPI) {
+      setTimeout(() => enterUserEditMode(em), 80);
+      return;
+    }
     const api = window._adminEditAPI;
-    if (!api) return;
 
     // Reuse admin-mode CSS class — gives all the same visual edit styles
     document.body.classList.add('admin-mode');
