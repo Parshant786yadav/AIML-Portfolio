@@ -137,6 +137,9 @@ document.getElementById('theme-toggle-mobile').addEventListener('click', toggleT
 /* ─── User route detection (must be before admin CMS) ─── */
 const USER_SLUG = (window.location.pathname.match(/^\/p\/([a-z0-9_-]+)/i) || [])[1]?.toLowerCase() || null;
 
+/* Hide chatbot on user portfolio pages — it's Parshant's personal AI, not relevant there */
+if (USER_SLUG) { const _cf = document.getElementById('chat-fab'); if (_cf) _cf.style.display = 'none'; }
+
 /* ─── Scroll progress bar ─── */
 const progressBar = document.getElementById('scroll-progress');
 window.addEventListener('scroll', () => {
@@ -434,11 +437,8 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   const adminSaveBtn    = document.getElementById('admin-save-btn');
   const adminLogoutBtn  = document.getElementById('admin-logout-btn');
 
-  /* ── Skip admin UI entirely on user portfolio routes ── */
-  if (USER_SLUG) {
-    if (adminLoginBtn) adminLoginBtn.style.display = 'none';
-    return;
-  }
+  /* ── Hide admin login button on user portfolio routes ── */
+  if (USER_SLUG && adminLoginBtn) adminLoginBtn.style.display = 'none';
 
   /* ── Helpers ── */
   function editable(el) { if (!el) return; el.contentEditable = 'true'; el.spellcheck = false; }
@@ -1071,82 +1071,93 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     resumeDataUrl = null;
   }
 
-  if (sessionStorage.getItem(TOKEN_KEY)) enterAdminMode();
+  /* ── Admin-only UI: login, save, logout (skipped on user portfolio routes) ── */
+  if (!USER_SLUG) {
+    if (sessionStorage.getItem(TOKEN_KEY)) enterAdminMode();
 
-  /* ── Login modal events ── */
-  adminLoginBtn.addEventListener('click', () => adminModal.classList.add('open'));
-  adminModalClose.addEventListener('click', () => adminModal.classList.remove('open'));
-  adminModal.addEventListener('click', e => { if (e.target === adminModal) adminModal.classList.remove('open'); });
+    /* Login modal events */
+    adminLoginBtn.addEventListener('click', () => adminModal.classList.add('open'));
+    adminModalClose.addEventListener('click', () => adminModal.classList.remove('open'));
+    adminModal.addEventListener('click', e => { if (e.target === adminModal) adminModal.classList.remove('open'); });
 
-  adminLoginForm.addEventListener('submit', async e => {
-    e.preventDefault(); adminLoginError.textContent = '';
-    const username = document.getElementById('admin-username').value.trim();
-    const password = document.getElementById('admin-password').value;
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) { adminLoginError.textContent = data.error || 'Invalid credentials.'; return; }
-      sessionStorage.setItem(TOKEN_KEY, data.token);
-      adminModal.classList.remove('open'); adminLoginForm.reset(); enterAdminMode();
-    } catch { adminLoginError.textContent = 'Connection error. Try again.'; }
-  });
-
-  /* ── Save ── */
-  adminSaveBtn.addEventListener('click', async () => {
-    const token = sessionStorage.getItem(TOKEN_KEY); if (!token) return;
-    const content = {};
-
-    // Non-list text fields
-    document.querySelectorAll('[data-editable]').forEach(el => {
-      if (!isInList(el)) content[el.dataset.editable] = el.innerHTML;
+    adminLoginForm.addEventListener('submit', async e => {
+      e.preventDefault(); adminLoginError.textContent = '';
+      const username = document.getElementById('admin-username').value.trim();
+      const password = document.getElementById('admin-password').value;
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) { adminLoginError.textContent = data.error || 'Invalid credentials.'; return; }
+        sessionStorage.setItem(TOKEN_KEY, data.token);
+        adminModal.classList.remove('open'); adminLoginForm.reset(); enterAdminMode();
+      } catch { adminLoginError.textContent = 'Connection error. Try again.'; }
     });
 
-    // Profile photo
-    const photo = newPhotoUrl || loadedPhotoUrl;
-    if (photo) content['profile-photo'] = photo;
+    /* Save */
+    adminSaveBtn.addEventListener('click', async () => {
+      const token = sessionStorage.getItem(TOKEN_KEY); if (!token) return;
+      const content = {};
 
-    // Resume
-    const resume = resumeDataUrl || loadedResumeUrl;
-    if (resume) content['resume-pdf'] = resume;
-
-    // List containers — clone DOM, strip admin UI, save innerHTML
-    Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
-      const el = document.querySelector(sel); if (!el) return;
-      const clone = el.cloneNode(true);
-      clone.querySelectorAll('.' + AC).forEach(x => x.remove());
-      clone.querySelectorAll('[contenteditable]').forEach(x => { x.removeAttribute('contenteditable'); x.removeAttribute('spellcheck'); });
-      clone.querySelectorAll('[style]').forEach(x => {
-        x.style.removeProperty('position');
-        if (!x.getAttribute('style')?.trim()) x.removeAttribute('style');
+      document.querySelectorAll('[data-editable]').forEach(el => {
+        if (!isInList(el)) content[el.dataset.editable] = el.innerHTML;
       });
-      content[key] = clone.innerHTML;
+
+      const photo = newPhotoUrl || loadedPhotoUrl;
+      if (photo) content['profile-photo'] = photo;
+
+      const resume = resumeDataUrl || loadedResumeUrl;
+      if (resume) content['resume-pdf'] = resume;
+
+      Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
+        const el = document.querySelector(sel); if (!el) return;
+        const clone = el.cloneNode(true);
+        clone.querySelectorAll('.' + AC).forEach(x => x.remove());
+        clone.querySelectorAll('[contenteditable]').forEach(x => { x.removeAttribute('contenteditable'); x.removeAttribute('spellcheck'); });
+        clone.querySelectorAll('[style]').forEach(x => {
+          x.style.removeProperty('position');
+          if (!x.getAttribute('style')?.trim()) x.removeAttribute('style');
+        });
+        content[key] = clone.innerHTML;
+      });
+
+      const orig = adminSaveBtn.textContent;
+      adminSaveBtn.textContent = 'Saving…'; adminSaveBtn.disabled = true;
+      try {
+        const res = await fetch('/api/admin/content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(content),
+        });
+        if (res.ok) {
+          adminSaveBtn.textContent = '✓ Saved & Live!';
+          if (newPhotoUrl) { loadedPhotoUrl = newPhotoUrl; newPhotoUrl = null; }
+        } else { adminSaveBtn.textContent = 'Save Failed'; }
+      } catch { adminSaveBtn.textContent = 'Save Failed'; }
+      setTimeout(() => { adminSaveBtn.textContent = orig; adminSaveBtn.disabled = false; }, 2200);
     });
 
-    const orig = adminSaveBtn.textContent;
-    adminSaveBtn.textContent = 'Saving…'; adminSaveBtn.disabled = true;
-    try {
-      const res = await fetch('/api/admin/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(content),
-      });
-      if (res.ok) {
-        adminSaveBtn.textContent = '✓ Saved & Live!';
-        if (newPhotoUrl) { loadedPhotoUrl = newPhotoUrl; newPhotoUrl = null; }
-      } else { adminSaveBtn.textContent = 'Save Failed'; }
-    } catch { adminSaveBtn.textContent = 'Save Failed'; }
-    setTimeout(() => { adminSaveBtn.textContent = orig; adminSaveBtn.disabled = false; }, 2200);
-  });
+    /* Logout */
+    adminLogoutBtn.addEventListener('click', async () => {
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      if (token) await fetch('/api/admin/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }).catch(() => {});
+      exitAdminMode();
+    });
+  } // end if (!USER_SLUG)
 
-  /* ── Logout ── */
-  adminLogoutBtn.addEventListener('click', async () => {
-    const token = sessionStorage.getItem(TOKEN_KEY);
-    if (token) await fetch('/api/admin/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }).catch(() => {});
-    exitAdminMode();
-  });
+  /* ── Expose full editing API so user portfolios get identical edit power ── */
+  window._adminEditAPI = {
+    injectControls,
+    removeControls,
+    LIST_CONTAINERS,
+    AC,
+    isInList,
+    applyResumeToLinks,
+    getPhoto:  () => newPhotoUrl  || loadedPhotoUrl,
+    getResume: () => resumeDataUrl || loadedResumeUrl,
+  };
 })();
 
 /* ═══════════════════════════════════════════════════════════
@@ -1250,38 +1261,29 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   }
 
   function enterUserEditMode(em) {
-    document.body.classList.add('user-edit-mode');
+    const api = window._adminEditAPI;
+    if (!api) return;
 
-    // All [data-editable] fields
+    // Reuse admin-mode CSS class — gives all the same visual edit styles
+    document.body.classList.add('admin-mode');
+
+    // Make non-list data-editable fields editable (same as admin)
     document.querySelectorAll('[data-editable]').forEach(el => {
-      el.contentEditable = 'true';
-      el.spellcheck = false;
+      if (!api.isInList(el)) { el.contentEditable = 'true'; el.spellcheck = false; }
     });
 
-    // Extra fields inside list containers that lack data-editable
-    [
-      '.exp-company',    // experience company name/link
-      '.exp-loc',        // experience location
-      '.project-badge',  // project type badge
-      '.project-metric', // project outcome text
-      '.lc-username',    // LeetCode username
-      '.lc-val',         // LeetCode stat numbers
-      '.lc-label',       // LeetCode stat labels
-      '.lc-bar-label',   // LeetCode bar row labels
-      '.skill-label',    // skill category labels (AI/ML, Frontend…)
-      '.cert-title',     // certificate name
-      '.cert-issuer',    // certificate issuer
-    ].forEach(sel => {
-      document.querySelectorAll(sel).forEach(el => {
-        el.contentEditable = 'true';
-        el.spellcheck = false;
-      });
-    });
+    // Inject FULL admin controls: photo upload, resume, add/remove items,
+    // tag controls, social link URL editor, LeetCode bar %, skill icons, etc.
+    api.injectControls();
 
+    // Show USER toolbar (not admin toolbar)
     if (userToolbar) userToolbar.classList.add('visible');
     if (userToolbarEmail) userToolbarEmail.textContent = em || '';
 
-    // Hide FAB once in edit mode
+    // Make sure admin toolbar stays hidden
+    document.getElementById('admin-toolbar')?.classList.remove('visible');
+
+    // Hide FAB — user is now in edit mode
     const fab = document.getElementById('user-edit-fab');
     if (fab) fab.style.display = 'none';
   }
@@ -1319,21 +1321,35 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   userSaveBtn?.addEventListener('click', async () => {
     const tok = localStorage.getItem(U_TOKEN);
     if (!tok) return;
+    const api = window._adminEditAPI;
+    if (!api) return;
 
-    const LIST_SEL = {
-      'exp-list': '.exp-list', 'projects-list': '.projects-list',
-      'edu-list': '.edu-list', 'cert-grid': '.cert-grid',
-      'skills-list': '.skills-list', 'social-links': '.social-links', 'lc-card': '.lc-card',
-    };
+    const { LIST_CONTAINERS, AC, isInList } = api;
     const content = {};
+
+    // Non-list text fields (identical snapshot to admin save)
     document.querySelectorAll('[data-editable]').forEach(el => {
-      content[el.dataset.editable] = el.innerHTML;
+      if (!isInList(el)) content[el.dataset.editable] = el.innerHTML;
     });
-    Object.entries(LIST_SEL).forEach(([key, sel]) => {
-      const el = document.querySelector(sel);
-      if (!el) return;
+
+    // Profile photo
+    const photo = api.getPhoto();
+    if (photo) content['profile-photo'] = photo;
+
+    // Resume PDF
+    const resume = api.getResume();
+    if (resume) content['resume-pdf'] = resume;
+
+    // List containers — clone, strip all admin UI, save clean innerHTML
+    Object.entries(LIST_CONTAINERS).forEach(([key, sel]) => {
+      const el = document.querySelector(sel); if (!el) return;
       const clone = el.cloneNode(true);
-      clone.querySelectorAll('[contenteditable]').forEach(x => x.removeAttribute('contenteditable'));
+      clone.querySelectorAll('.' + AC).forEach(x => x.remove());
+      clone.querySelectorAll('[contenteditable]').forEach(x => { x.removeAttribute('contenteditable'); x.removeAttribute('spellcheck'); });
+      clone.querySelectorAll('[style]').forEach(x => {
+        x.style.removeProperty('position');
+        if (!x.getAttribute('style')?.trim()) x.removeAttribute('style');
+      });
       content[key] = clone.innerHTML;
     });
 
@@ -1375,6 +1391,9 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     const tok = localStorage.getItem(U_TOKEN);
     if (tok) await fetch('/api/users/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${tok}` } }).catch(() => {});
     clearSession();
+    document.body.classList.remove('admin-mode');
+    window._adminEditAPI?.removeControls();
+    if (userToolbar) userToolbar.classList.remove('visible');
     window.location.reload();
   });
 })();
