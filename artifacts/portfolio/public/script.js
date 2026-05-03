@@ -156,7 +156,9 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 
 /* ─── Navbar logo → scroll to top ─── */
-document.getElementById('nav-logo').addEventListener('click', () => {
+document.getElementById('nav-logo').addEventListener('click', (e) => {
+  /* In edit mode the inner span is contenteditable — don't trigger scroll */
+  if (document.body.classList.contains('admin-mode')) { e.preventDefault(); return; }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
