@@ -31,26 +31,83 @@ function applyTheme(theme) {
 
 applyTheme(getTheme());
 
+/* ── Theme FX helpers ── */
+function spawnFlash(x, y, isDark) {
+  const el = document.createElement('div');
+  el.className = 'theme-flash';
+  el.style.cssText = `left:${x}px;top:${y}px;background:${isDark ? 'radial-gradient(circle, #a5b4fc, #6366f1)' : 'radial-gradient(circle, #fde68a, #f59e0b)'};`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 260);
+}
+
+function spawnParticles(x, y, isDark) {
+  const paletteDark  = ['#818cf8','#6366f1','#a5b4fc','#c7d2fe','#e0e7ff','#fff'];
+  const paletteLight = ['#fbbf24','#f59e0b','#fcd34d','#fb923c','#fff','#fde68a'];
+  const palette = isDark ? paletteDark : paletteLight;
+  const count = 22;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'theme-particle';
+    const angle  = (i / count) * 360 + (Math.random() - 0.5) * 28;
+    const dist   = 55 + Math.random() * 110;
+    const dx     = Math.cos(angle * Math.PI / 180) * dist;
+    const dy     = Math.sin(angle * Math.PI / 180) * dist;
+    const size   = 3 + Math.random() * 5;
+    const color  = palette[Math.floor(Math.random() * palette.length)];
+    const dur    = 480 + Math.random() * 340;
+    el.style.cssText = `
+      left:${x}px;top:${y}px;
+      width:${size}px;height:${size}px;
+      margin:${-size / 2}px;
+      background:${color};
+      box-shadow:0 0 ${size * 3}px 1px ${color};
+      --tdx:${dx}px;--tdy:${dy}px;--dur:${dur}ms;`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), dur + 50);
+  }
+}
+
+function spawnRings(x, y, isDark) {
+  const color = isDark ? '#6366f1' : '#f59e0b';
+  [0, 90, 180].forEach((delay, i) => {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'theme-ring';
+      const dur = 500 + i * 80;
+      el.style.cssText = `left:${x}px;top:${y}px;border-color:${color};--rdur:${dur}ms;`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), dur + 40);
+    }, delay);
+  });
+}
+
 function toggleTheme(event) {
   const newTheme = html.classList.contains('dark') ? 'light' : 'dark';
+  const isDark   = newTheme === 'dark';
 
-  /* ── Button burst effect ── */
+  const x = event?.clientX ?? window.innerWidth / 2;
+  const y = event?.clientY ?? window.innerHeight / 2;
+
+  /* ── FX salvo ── */
+  spawnFlash(x, y, isDark);
+  spawnParticles(x, y, isDark);
+  spawnRings(x, y, isDark);
+
+  /* ── Button mega burst ── */
   const btn = event?.currentTarget;
   if (btn) {
     btn.classList.remove('theme-btn-burst');
-    void btn.offsetWidth; // reflow to restart animation
+    void btn.offsetWidth;
     btn.classList.add('theme-btn-burst');
     btn.addEventListener('animationend', () => btn.classList.remove('theme-btn-burst'), { once: true });
   }
 
-  /* ── Circular ripple via View Transitions API ── */
+  /* ── Circular reveal via View Transitions API ── */
   if (!document.startViewTransition) {
     applyTheme(newTheme);
     return;
   }
 
-  const x = event?.clientX ?? window.innerWidth / 2;
-  const y = event?.clientY ?? window.innerHeight / 2;
   const maxRadius = Math.hypot(
     Math.max(x, window.innerWidth  - x),
     Math.max(y, window.innerHeight - y)
@@ -59,16 +116,15 @@ function toggleTheme(event) {
   const transition = document.startViewTransition(() => applyTheme(newTheme));
 
   transition.ready.then(() => {
-    const isDark = newTheme === 'dark';
     document.documentElement.animate(
       {
         clipPath: isDark
-          ? [`circle(0px at ${x}px ${y}px)`, `circle(${maxRadius}px at ${x}px ${y}px)`]
+          ? [`circle(0px at ${x}px ${y}px)`,    `circle(${maxRadius}px at ${x}px ${y}px)`]
           : [`circle(${maxRadius}px at ${x}px ${y}px)`, `circle(0px at ${x}px ${y}px)`],
       },
       {
-        duration: 550,
-        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        duration: 700,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
         pseudoElement: isDark ? '::view-transition-new(root)' : '::view-transition-old(root)',
       }
     );
