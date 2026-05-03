@@ -586,8 +586,9 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
 
   /* ── Resume upload controls ── */
   function applyResumeToLinks(dataUrl) {
+    const filename = USER_SLUG ? `${USER_SLUG}-Resume.pdf` : 'Parshant-Yadav-Resume.pdf';
     document.querySelectorAll('.resume-btn, .social-btn-resume').forEach(link => {
-      link.href = dataUrl; link.setAttribute('download', 'Parshant-Yadav-Resume.pdf'); link.style.opacity = '';
+      link.href = dataUrl; link.setAttribute('download', filename); link.style.opacity = '';
     });
   }
 
@@ -600,7 +601,7 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     ctrl.innerHTML = `
       <label class="admin-resume-replace" title="Upload new PDF">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Replace PDF
+        <span class="resume-lbl-text">Replace PDF</span>
         <input type="file" accept=".pdf" style="display:none">
       </label>
       <button class="admin-resume-remove" title="Remove resume">✕ Remove</button>
@@ -612,7 +613,16 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
       reader.onload = ev => {
         resumeDataUrl = ev.target.result;
         applyResumeToLinks(resumeDataUrl);
-        ctrl.querySelector('.admin-resume-replace').classList.add('admin-resume-replace--done');
+        const lbl = ctrl.querySelector('.admin-resume-replace');
+        const txt = lbl.querySelector('.resume-lbl-text');
+        lbl.classList.add('admin-resume-replace--done');
+        if (txt) {
+          txt.textContent = '✓ Resume Updated';
+          setTimeout(() => {
+            txt.textContent = 'Replace PDF';
+            lbl.classList.remove('admin-resume-replace--done');
+          }, 3000);
+        }
       };
       reader.readAsDataURL(file); fi.value = '';
     });
@@ -1057,6 +1067,28 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     }
 
     injectResumeControls();
+
+    /* Contact email link — add ✎ edit button so users can update their mailto href */
+    const contactIntroEmail = document.querySelector('.contact-intro a[href^="mailto"]');
+    if (contactIntroEmail && !contactIntroEmail.querySelector('.admin-link-edit')) {
+      contactIntroEmail.style.position = 'relative';
+      const btn = document.createElement('button');
+      btn.className = `admin-link-edit ${AC}`; btn.title = 'Edit contact email'; btn.innerHTML = '✎';
+      btn.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        const cur = (contactIntroEmail.getAttribute('href') || '').replace('mailto:', '');
+        const email = prompt('Your contact email address:', cur);
+        if (email === null) return;
+        const trimmed = email.trim();
+        contactIntroEmail.href = trimmed ? `mailto:${trimmed}` : '#';
+        contactIntroEmail.textContent = trimmed || cur;
+        contactIntroEmail.appendChild(btn);
+        /* Sync the form hint below the contact form */
+        const hint = document.querySelector('[data-editable="contact-email-hint"]');
+        if (hint && trimmed) hint.textContent = trimmed;
+      });
+      contactIntroEmail.appendChild(btn);
+    }
   }
 
   function removeControls() {
@@ -1425,6 +1457,11 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
   /* Update page title */
   const nameEl = document.querySelector('[data-editable="profile-name"]');
   if (nameEl?.textContent.trim()) document.title = nameEl.textContent.trim() + ' — Portfolio';
+
+  /* Fix resume download filename for this user's portfolio (overrides hardcoded HTML attr) */
+  document.querySelectorAll('.resume-btn, .social-btn-resume').forEach(link => {
+    link.setAttribute('download', `${USER_SLUG}-Resume.pdf`);
+  });
 
   /* Check for edit flag set by dashboard */
   const editFlag = sessionStorage.getItem(U_EDITFLAG);
