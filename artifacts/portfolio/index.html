@@ -633,14 +633,20 @@
 
           <!-- Links -->
           <div class="me-section">
-            <div class="me-section-title">Links</div>
-            <div class="me-field-row">
-              <div class="me-field"><label>GitHub</label><input type="url" id="me-github" placeholder="https://github.com/username" /></div>
-              <div class="me-field"><label>LinkedIn</label><input type="url" id="me-linkedin" placeholder="https://linkedin.com/in/username" /></div>
+            <div class="me-section-hdr">
+              <div class="me-section-title">Links & Profiles</div>
             </div>
-            <div class="me-field-row">
-              <div class="me-field"><label>Website</label><input type="url" id="me-website" placeholder="https://yourwebsite.com" /></div>
-              <div class="me-field"><label>Twitter / X</label><input type="url" id="me-twitter" placeholder="https://twitter.com/username" /></div>
+            <div id="me-links-list" class="me-links-list"></div>
+            <div class="me-link-add-row">
+              <select id="me-link-platform-sel" class="me-link-platform-sel">
+                <option value="">Choose platform to add...</option>
+                <option>GitHub</option><option>LinkedIn</option><option>WhatsApp</option>
+                <option>Email</option><option>LeetCode</option><option>Website</option>
+                <option>Twitter / X</option><option>YouTube</option><option>Instagram</option>
+                <option>Medium</option><option>Dev.to</option><option>Behance</option>
+                <option>Dribbble</option><option>Custom</option>
+              </select>
+              <button class="me-add-btn" id="me-add-link-btn" type="button">+ Add Link</button>
             </div>
           </div>
 
@@ -669,6 +675,41 @@
             <div class="me-tag-input-row">
               <input type="text" id="me-skill-input" placeholder="Type a skill and press Enter" />
               <button class="me-add-btn" id="me-add-skill-btn" type="button">Add</button>
+            </div>
+          </div>
+
+          <!-- Education -->
+          <div class="me-section">
+            <div class="me-section-hdr">
+              <div class="me-section-title">Education</div>
+              <button class="me-add-btn" id="me-add-edu" type="button">+ Add Education</button>
+            </div>
+            <div id="me-edu-list"></div>
+          </div>
+
+          <!-- Certifications -->
+          <div class="me-section">
+            <div class="me-section-hdr">
+              <div class="me-section-title">Certifications</div>
+              <button class="me-add-btn" id="me-add-cert" type="button">+ Add Certification</button>
+            </div>
+            <div id="me-cert-list"></div>
+          </div>
+
+          <!-- LeetCode -->
+          <div class="me-section">
+            <div class="me-section-title">LeetCode / Competitive Programming</div>
+            <div class="me-field-row">
+              <div class="me-field"><label>LeetCode Username</label><input type="text" id="me-lc-username" placeholder="e.g. john_doe" /></div>
+              <div class="me-field"><label>Total Solved</label><input type="number" id="me-lc-total" placeholder="e.g. 200" min="0" /></div>
+            </div>
+            <div class="me-field-row">
+              <div class="me-field"><label>Hard Solved</label><input type="number" id="me-lc-hard" placeholder="e.g. 20" min="0" /></div>
+              <div class="me-field"><label>Medium Solved</label><input type="number" id="me-lc-medium" placeholder="e.g. 80" min="0" /></div>
+            </div>
+            <div class="me-field-row">
+              <div class="me-field"><label>Easy Solved</label><input type="number" id="me-lc-easy" placeholder="e.g. 100" min="0" /></div>
+              <div class="me-field"><label>Contest Rating (optional)</label><input type="number" id="me-lc-rating" placeholder="e.g. 1650" min="0" /></div>
             </div>
           </div>
 
@@ -736,6 +777,32 @@
           <a class="share-open-btn" id="wiz-open-btn" href="#" target="_blank" rel="noopener">
             Open ↗
           </a>
+        </div>
+        <!-- Admin Credentials -->
+        <div class="admin-creds-card" id="wiz-admin-creds">
+          <div class="admin-creds-header">
+            <div class="admin-creds-icon">🔐</div>
+            <div>
+              <div class="admin-creds-title">Your Admin Access</div>
+              <div class="admin-creds-sub">Use these to edit your portfolio and view contact form submissions anytime.</div>
+            </div>
+          </div>
+          <div class="admin-cred-rows">
+            <div class="admin-cred-row">
+              <span class="admin-cred-lbl">Admin URL</span>
+              <code class="admin-cred-val" id="wiz-admin-url"></code>
+              <button class="admin-copy-btn" id="wiz-copy-admin-url">Copy</button>
+            </div>
+            <div class="admin-cred-row">
+              <span class="admin-cred-lbl">Username</span>
+              <code class="admin-cred-val" id="wiz-admin-user"></code>
+            </div>
+            <div class="admin-cred-row">
+              <span class="admin-cred-lbl">Password</span>
+              <code class="admin-cred-val" id="wiz-admin-pass"></code>
+            </div>
+          </div>
+          <p class="admin-creds-note">⚠ Save these credentials — the password won't be shown again.</p>
         </div>
       </div>
 

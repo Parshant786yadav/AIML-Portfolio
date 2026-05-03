@@ -1,33 +1,50 @@
 {
-  "name": "Parshant",
-  "title": "AI Engineer",
-  "bio": "",
-  "location": "",
-  "email": "test@gmail.com",
+  "name": "parshant",
+  "title": "ai eng",
+  "bio": "i am ai eng .................",
+  "location": "india",
+  "email": "parshant786yadav@gmail.com",
   "links": {
-    "github": "parshantgithub.com",
-    "linkedin": "parshant786",
-    "website": "parshantyadav.in"
+    "github": "j",
+    "linkedin": "s",
+    "website": "s",
+    "twitter": "s"
   },
-  "experience": [],
+  "experience": [
+    {
+      "role": "Software Engineering",
+      "company": "test",
+      "period": "12aug - persent",
+      "location": "Gurgaon",
+      "description": "test",
+      "skills": [
+        "python"
+      ]
+    }
+  ],
   "projects": [
     {
-      "name": "Resume Builder",
-      "description": "An AI-powered resume builder that helps users generate resumes automatically using Python.",
-      "githubUrl": "",
-      "liveUrl": "",
+      "name": "Parshant yadav",
+      "description": "test",
+      "githubUrl": "s",
+      "liveUrl": "a",
       "tags": [
-        "Python",
-        "AI",
-        "Automation"
+        "test"
       ]
     }
   ],
   "skills": [
-    "Python",
-    "SQL",
-    "APIs"
+    "python",
+    "new"
   ],
   "username": "parshant1",
-  "updatedAt": 1777785082208
+  "updatedAt": 1777786525561,
+  "contacts": [
+    {
+      "name": "Test User",
+      "email": "test@example.com",
+      "message": "Hello!",
+      "date": "2026-05-03T06:00:03.833Z"
+    }
+  ]
 }

@@ -31,6 +31,11 @@ function verifyPassword(pw: string, hash: string): Promise<boolean> {
   return new Promise((res, rej) => crypto.scrypt(pw, salt, 64, (e, k) => e ? rej(e) : res(k.toString("hex") === key)));
 }
 function genToken() { return crypto.randomBytes(32).toString("hex"); }
+function genAdminPass(): string {
+  const a = ['Sky','Red','Blue','Gold','Star','Fire','Ice','Wind','Sea','Sun','Ace','Neo','Zen','Arc','Max'];
+  const n = ['Bear','Wolf','Fox','Lion','Eagle','Hawk','Tiger','Crane','Oak','Rock','Sage','Bolt','Flux','Byte','Core'];
+  return `${a[Math.floor(Math.random()*15)]}-${n[Math.floor(Math.random()*15)]}-${Math.floor(Math.random()*900)+100}`;
+}
 async function authMiddleware(req: any, res: any, next: any) {
   const t = req.headers.authorization?.replace("Bearer ", "");
   if (!t) return res.status(401).json({ error: "Unauthorized" });
@@ -50,9 +55,10 @@ router.post("/builder/register", async (req, res) => {
     const users = await loadUsers();
     if (users[username.toLowerCase()]) return res.status(409).json({ error: "Username taken" });
     const token = genToken();
-    users[username.toLowerCase()] = { username: username.toLowerCase(), displayName: displayName || username, passwordHash: await hashPassword(password), token, created: Date.now() };
+    const adminPassword = genAdminPass();
+    users[username.toLowerCase()] = { username: username.toLowerCase(), displayName: displayName || username, passwordHash: await hashPassword(password), adminPassword, token, created: Date.now() };
     await saveUsers(users);
-    res.json({ token, username: username.toLowerCase(), displayName: displayName || username });
+    res.json({ token, username: username.toLowerCase(), displayName: displayName || username, adminPassword });
   } catch (e) { res.status(500).json({ error: "Server error" }); }
 });
 
@@ -65,7 +71,7 @@ router.post("/builder/login", async (req, res) => {
     if (!user || !(await verifyPassword(password, user.passwordHash))) return res.status(401).json({ error: "Invalid credentials" });
     user.token = genToken();
     await saveUsers(users);
-    res.json({ token: user.token, username: user.username, displayName: user.displayName });
+    res.json({ token: user.token, username: user.username, displayName: user.displayName, adminPassword: user.adminPassword || '' });
   } catch (e) { res.status(500).json({ error: "Server error" }); }
 });
 
@@ -127,6 +133,25 @@ router.get("/builder/portfolio", authMiddleware, async (req: any, res) => {
   res.json(p || {});
 });
 
+router.get("/builder/my-portfolio", authMiddleware, async (req: any, res) => {
+  const data = await loadPortfolio(req.builderUser.username);
+  res.json({ data: data || {} });
+});
+
+router.post("/builder/my-portfolio", authMiddleware, async (req: any, res) => {
+  try {
+    const { data } = req.body;
+    const existing = await loadPortfolio(req.builderUser.username) || {};
+    await savePortfolio(req.builderUser.username, { ...data, username: req.builderUser.username, contacts: existing.contacts || [], updatedAt: Date.now() });
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: "Failed to save" }); }
+});
+
+router.get("/builder/contacts", authMiddleware, async (req: any, res) => {
+  const data = await loadPortfolio(req.builderUser.username);
+  res.json({ contacts: (data?.contacts || []).reverse() });
+});
+
 /* ── Separate router for /p/:username (mounted directly on app, not under /api) ── */
 export const portfolioServeRouter: RouterType = Router();
 portfolioServeRouter.get("/:username", async (req, res) => {
@@ -138,6 +163,291 @@ portfolioServeRouter.get("/:username", async (req, res) => {
     res.send(renderTemplate(data, t));
   } catch (e) { res.status(500).send("Error loading portfolio"); }
 });
+
+portfolioServeRouter.post("/:username/contact", async (req, res) => {
+  try {
+    const data = await loadPortfolio(req.params.username);
+    if (!data) return res.status(404).json({ error: "Not found" });
+    if (!data.contacts) data.contacts = [];
+    data.contacts.push({ name: req.body.name || '', email: req.body.email || '', message: req.body.message || '', date: new Date().toISOString() });
+    await savePortfolio(req.params.username, data);
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: "Server error" }); }
+});
+
+portfolioServeRouter.get("/:username/admin", async (req, res) => {
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(adminPanelPage(req.params.username));
+});
+
+function adminPanelPage(username: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — @${username}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#e0e0e0;font-family:'Inter',system-ui,sans-serif;line-height:1.5;min-height:100vh}
+a{color:#4ade80;text-decoration:none}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.login-card{background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:40px;max-width:400px;width:100%}
+.login-logo{font-family:monospace;font-size:13px;color:#4ade80;margin-bottom:24px}
+.login-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.login-sub{font-size:13px;color:#666;margin-bottom:28px}
+.f{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.f label{font-size:11px;color:#666;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.f input{background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:10px 12px;font-size:13px;color:#e0e0e0;font-family:inherit;transition:border-color .15s;width:100%}
+.f input:focus{outline:none;border-color:#4ade80}
+.btn-primary{width:100%;background:#4ade80;color:#000;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
+.btn-primary:hover{background:#22c55e}
+.err{font-size:12px;color:#ef4444;margin-top:8px;min-height:18px}
+.panel{display:none;flex-direction:column;min-height:100vh}
+.phdr{display:flex;align-items:center;gap:12px;padding:0 24px;height:56px;background:#111;border-bottom:1px solid #1a1a1a;flex-shrink:0;flex-wrap:wrap}
+.plogo{font-family:monospace;font-size:12px;color:#4ade80}
+.puser{font-size:12px;color:#555;font-family:monospace}
+.ptabs{display:flex;gap:4px;margin-left:auto}
+.tbtn{font-size:12px;font-family:monospace;padding:6px 14px;background:transparent;border:1px solid transparent;border-radius:6px;color:#666;cursor:pointer;transition:.15s}
+.tbtn.active,.tbtn:hover{border-color:#1e1e1e;color:#e0e0e0}.tbtn.active{background:#1a1a1a;color:#4ade80}
+.vbtn{font-size:12px;font-family:monospace;padding:6px 12px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:6px;color:#4ade80;text-decoration:none}
+.lbtn{font-size:12px;font-family:monospace;padding:6px 12px;background:transparent;border:1px solid #1e1e1e;border-radius:6px;color:#666;cursor:pointer}
+.edit-wrap{max-width:780px;margin:0 auto;padding:28px 20px}
+.sbar{position:sticky;top:0;z-index:10;background:#0a0a0ae0;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:space-between;padding:12px 0;margin-bottom:24px;border-bottom:1px solid #1a1a1a}
+.sbar-r{display:flex;align-items:center;gap:12px}
+.save-st{font-size:12px;color:#4ade80;font-family:monospace}
+.btn-save{background:#4ade80;color:#000;border:none;border-radius:8px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+.shdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #1a1a1a}
+.stitle{font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.1em;color:#555;font-weight:600}
+.sblk{margin-bottom:26px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:600px){.fr{grid-template-columns:1fr}}
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fld label{font-size:11px;color:#555;font-weight:500}
+.fld input,.fld textarea,.fld select{background:#111;border:1px solid #1a1a1a;border-radius:8px;padding:8px 11px;font-size:13px;color:#e0e0e0;font-family:inherit;width:100%;transition:border-color .15s;resize:vertical}
+.fld input:focus,.fld textarea:focus{outline:none;border-color:#4ade80}
+.dyn-item{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:14px;margin-bottom:8px}
+.dyn-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dyn-lbl{font-size:11px;font-family:monospace;color:#555;font-weight:600}
+.btn-rm{font-size:11px;color:#ef4444;background:transparent;border:1px solid #3a1a1a;border-radius:6px;padding:3px 8px;cursor:pointer}
+.btn-add{font-size:12px;font-family:monospace;color:#4ade80;background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.18);border-radius:8px;padding:5px 12px;cursor:pointer}
+.btn-add:hover{background:rgba(74,222,128,.14)}
+.li{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.lbadge{font-size:11px;font-family:monospace;background:#1a1a1a;border:1px solid #252525;border-radius:6px;padding:4px 8px;color:#888;white-space:nowrap;min-width:72px;text-align:center}
+.linput{flex:1;background:#111;border:1px solid #1a1a1a;border-radius:8px;padding:7px 11px;font-size:13px;color:#e0e0e0;font-family:inherit;transition:border-color .15s}
+.linput:focus{outline:none;border-color:#4ade80}
+.ladd{display:flex;gap:8px;margin-top:6px}
+.ladd select{background:#111;border:1px solid #1a1a1a;border-radius:8px;padding:8px 11px;font-size:13px;color:#e0e0e0;flex:1;cursor:pointer}
+.contacts-wrap{max-width:780px;margin:0 auto;padding:28px 20px}
+.ct{font-size:18px;font-weight:700;margin-bottom:4px}
+.cs{font-size:13px;color:#555;margin-bottom:22px}
+.ccard{background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:16px;margin-bottom:10px}
+.cchdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.ccname{font-size:14px;font-weight:600}
+.ccdate{font-size:11px;font-family:monospace;color:#555}
+.ccemail{font-size:12px;color:#4ade80;margin-bottom:6px;font-family:monospace}
+.ccmsg{font-size:14px;color:#aaa;line-height:1.6}
+.empty{text-align:center;padding:48px 24px;color:#555;font-size:14px}
+</style>
+</head>
+<body>
+<div class="login-wrap" id="ls">
+  <div class="login-card">
+    <div class="login-logo">✦ portfolio.admin</div>
+    <h1 class="login-title">Admin Panel</h1>
+    <p class="login-sub">@${username}</p>
+    <form onsubmit="doLogin(event)">
+      <div class="f"><label>Username</label><input type="text" id="lu" value="${username}" required /></div>
+      <div class="f"><label>Password</label><input type="password" id="lp" placeholder="Your builder password" required /></div>
+      <button type="submit" class="btn-primary" id="lbtn">Sign in →</button>
+      <div class="err" id="lerr"></div>
+    </form>
+  </div>
+</div>
+<div class="panel" id="panel">
+  <div class="phdr">
+    <span class="plogo">✦ portfolio.admin</span>
+    <span class="puser">@${username}</span>
+    <div class="ptabs">
+      <button class="tbtn active" onclick="showTab('edit')" id="tb-edit">Edit Portfolio</button>
+      <button class="tbtn" onclick="showTab('contacts')" id="tb-contacts">Contacts</button>
+    </div>
+    <a href="/p/${username}" target="_blank" class="vbtn">View Live ↗</a>
+    <button class="lbtn" onclick="logout()">Logout</button>
+  </div>
+  <div id="edit-pane">
+    <div class="edit-wrap">
+      <div class="sbar">
+        <div><div style="font-size:14px;font-weight:600">Edit Portfolio</div><div style="font-size:11px;color:#555;margin-top:2px">Changes saved when you click Save</div></div>
+        <div class="sbar-r"><span class="save-st" id="sst"></span><button class="btn-save" onclick="saveP()">Save Changes</button></div>
+      </div>
+      <div class="sblk"><div class="shdr"><div class="stitle">Personal Info</div></div>
+        <div class="fr"><div class="fld"><label>Full Name</label><input type="text" id="pn" /></div><div class="fld"><label>Title / Role</label><input type="text" id="pt" /></div></div>
+        <div class="fr"><div class="fld"><label>Location</label><input type="text" id="pl" /></div><div class="fld"><label>Email</label><input type="email" id="pe" /></div></div>
+        <div class="fld"><label>Bio</label><textarea id="pb" rows="4"></textarea></div>
+      </div>
+      <div class="sblk"><div class="shdr"><div class="stitle">Links</div></div>
+        <div id="llist"></div>
+        <div class="ladd">
+          <select id="lsel"><option value="">Platform...</option><option>GitHub</option><option>LinkedIn</option><option>WhatsApp</option><option>Twitter</option><option>LeetCode</option><option>Website</option><option>YouTube</option><option>Instagram</option><option>Medium</option><option>Dev.to</option><option>Custom</option></select>
+          <button class="btn-add" onclick="addL()">+ Add</button>
+        </div>
+      </div>
+      <div class="sblk"><div class="shdr"><div class="stitle">Work Experience</div><button class="btn-add" onclick="addE()">+ Add</button></div><div id="elist"></div></div>
+      <div class="sblk"><div class="shdr"><div class="stitle">Projects</div><button class="btn-add" onclick="addPr()">+ Add</button></div><div id="prlist"></div></div>
+      <div class="sblk"><div class="shdr"><div class="stitle">Skills</div></div>
+        <div class="fld"><label>Comma separated</label><input type="text" id="psk" placeholder="Python, React, AWS, ..." /></div>
+      </div>
+      <div class="sblk"><div class="shdr"><div class="stitle">Education</div><button class="btn-add" onclick="addEd()">+ Add</button></div><div id="edlist"></div></div>
+      <div class="sblk"><div class="shdr"><div class="stitle">Certifications</div><button class="btn-add" onclick="addCe()">+ Add</button></div><div id="celist"></div></div>
+      <div class="sblk"><div class="shdr"><div class="stitle">LeetCode / Competitive Programming</div></div>
+        <div class="fr"><div class="fld"><label>LeetCode Username</label><input type="text" id="lcu" /></div><div class="fld"><label>Total Solved</label><input type="number" id="lct" /></div></div>
+        <div class="fr"><div class="fld"><label>Hard Solved</label><input type="number" id="lch" /></div><div class="fld"><label>Medium Solved</label><input type="number" id="lcm" /></div></div>
+        <div class="fr"><div class="fld"><label>Easy Solved</label><input type="number" id="lce" /></div><div class="fld"><label>Contest Rating</label><input type="number" id="lcr" /></div></div>
+      </div>
+      <div class="sblk"><div class="shdr"><div class="stitle">Template (1–15)</div></div>
+        <div class="fld"><label>Template Number</label><input type="number" id="ptmpl" min="1" max="15" /></div>
+      </div>
+    </div>
+  </div>
+  <div id="contacts-pane" style="display:none">
+    <div class="contacts-wrap">
+      <div class="ct">Contact Form Submissions</div>
+      <div class="cs">Messages sent via the contact form on your portfolio.</div>
+      <div id="clist"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+</div>
+<script>
+let tok=sessionStorage.getItem('adm_${username}');
+let pd={};
+async function doLogin(e){
+  e.preventDefault();const b=document.getElementById('lbtn');
+  b.disabled=true;b.textContent='…';document.getElementById('lerr').textContent='';
+  try{
+    const r=await fetch('/api/builder/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('lu').value,password:document.getElementById('lp').value})});
+    const d=await r.json();
+    if(!r.ok||d.username!=='${username}'){document.getElementById('lerr').textContent=d.error||'Access denied.';return;}
+    tok=d.token;sessionStorage.setItem('adm_${username}',tok);
+    showPanel();loadPD();
+  }catch{document.getElementById('lerr').textContent='Network error.';}
+  finally{b.disabled=false;b.textContent='Sign in →';}
+}
+function showPanel(){document.getElementById('ls').style.display='none';const p=document.getElementById('panel');p.style.display='flex';p.style.flexDirection='column';}
+function logout(){sessionStorage.removeItem('adm_${username}');location.reload();}
+function showTab(t){
+  document.getElementById('edit-pane').style.display=t==='edit'?'block':'none';
+  document.getElementById('contacts-pane').style.display=t==='contacts'?'block':'none';
+  document.getElementById('tb-edit').classList.toggle('active',t==='edit');
+  document.getElementById('tb-contacts').classList.toggle('active',t==='contacts');
+  if(t==='contacts')loadC();
+}
+function g(id){return document.getElementById(id)?.value?.trim()||'';}
+async function loadPD(){
+  try{
+    const r=await fetch('/api/builder/my-portfolio',{headers:{'Authorization':'Bearer '+tok}});
+    const d=await r.json();pd=d.data||{};popForm(pd);
+  }catch{}
+}
+function popForm(d){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  set('pn',d.name);set('pt',d.title);set('pb',d.bio);set('pl',d.location);set('pe',d.email);
+  set('psk',(d.skills||[]).join(', '));
+  set('lcu',d.leetcode?.username);set('lct',d.leetcode?.solved);set('lch',d.leetcode?.hard);
+  set('lcm',d.leetcode?.medium);set('lce',d.leetcode?.easy);set('lcr',d.leetcode?.rating);
+  set('ptmpl',d.template||1);
+  // links
+  const ll=document.getElementById('llist');ll.innerHTML='';
+  const links=Array.isArray(d.links)?d.links:bldLinks(d.links,d.email);
+  links.forEach(l=>rndLink(l.platform,l.url));
+  // exp
+  const el=document.getElementById('elist');el.innerHTML='';
+  (d.experience||[]).forEach(e=>{addE();const i=el.lastElementChild;i.querySelector('[name=role]').value=e.role||'';i.querySelector('[name=co]').value=e.company||'';i.querySelector('[name=per]').value=e.period||'';i.querySelector('[name=desc]').value=e.description||'';i.querySelector('[name=sk]').value=(e.skills||[]).join(', ');});
+  // proj
+  const pl=document.getElementById('prlist');pl.innerHTML='';
+  (d.projects||[]).forEach(p=>{addPr();const i=pl.lastElementChild;i.querySelector('[name=nm]').value=p.name||'';i.querySelector('[name=desc]').value=p.description||'';i.querySelector('[name=gh]').value=p.githubUrl||'';i.querySelector('[name=lv]').value=p.liveUrl||'';i.querySelector('[name=tg]').value=(p.tags||[]).join(', ');});
+  // edu
+  const edl=document.getElementById('edlist');edl.innerHTML='';
+  (d.education||[]).forEach(e=>{addEd();const i=edl.lastElementChild;i.querySelector('[name=ins]').value=e.institution||'';i.querySelector('[name=deg]').value=e.degree||'';i.querySelector('[name=fld]').value=e.field||'';i.querySelector('[name=per]').value=e.period||'';i.querySelector('[name=cgpa]').value=e.cgpa||'';});
+  // cert
+  const cl=document.getElementById('celist');cl.innerHTML='';
+  (d.certifications||[]).forEach(c=>{addCe();const i=cl.lastElementChild;i.querySelector('[name=nm]').value=c.name||'';i.querySelector('[name=iss]').value=c.issuer||'';i.querySelector('[name=dt]').value=c.date||'';i.querySelector('[name=url]').value=c.url||'';});
+}
+function bldLinks(obj,email){
+  const a=[];if(!obj){if(email)a.push({platform:'Email',url:'mailto:'+email});return a;}
+  if(obj.github)a.push({platform:'GitHub',url:obj.github});
+  if(obj.linkedin)a.push({platform:'LinkedIn',url:obj.linkedin});
+  if(obj.website)a.push({platform:'Website',url:obj.website});
+  if(email)a.push({platform:'Email',url:'mailto:'+email});
+  return a;
+}
+function rndLink(platform,url){
+  const ll=document.getElementById('llist');const div=document.createElement('div');div.className='li';
+  div.innerHTML=\`<span class="lbadge">\${platform}</span><input type="url" class="linput" data-platform="\${platform}" placeholder="https://..." value="\${url||''}" /><button class="btn-rm" onclick="this.parentElement.remove()">×</button>\`;
+  ll.appendChild(div);
+}
+function addL(){const s=document.getElementById('lsel');if(!s.value)return;rndLink(s.value,'');s.value='';}
+function tmpl(content){const d=document.createElement('div');d.className='dyn-item';d.innerHTML=content;return d;}
+function rm(btn){btn.closest('.dyn-item').remove();}
+function addE(){
+  const d=tmpl(\`<div class="dyn-hdr"><span class="dyn-lbl">Experience</span><button class="btn-rm" onclick="rm(this)">✕ Remove</button></div>
+  <div class="fr"><div class="fld"><label>Role</label><input type="text" name="role" placeholder="Software Engineer" /></div><div class="fld"><label>Company</label><input type="text" name="co" placeholder="Company Name" /></div></div>
+  <div class="fr"><div class="fld"><label>Period</label><input type="text" name="per" placeholder="Jan 2023 — Present" /></div><div class="fld"><label>Skills Used</label><input type="text" name="sk" placeholder="Python, React, ..." /></div></div>
+  <div class="fld"><label>Description</label><textarea name="desc" rows="3"></textarea></div>\`);
+  document.getElementById('elist').appendChild(d);
+}
+function addPr(){
+  const d=tmpl(\`<div class="dyn-hdr"><span class="dyn-lbl">Project</span><button class="btn-rm" onclick="rm(this)">✕ Remove</button></div>
+  <div class="fr"><div class="fld"><label>Project Name</label><input type="text" name="nm" /></div><div class="fld"><label>Tags</label><input type="text" name="tg" placeholder="Python, React, ..." /></div></div>
+  <div class="fld"><label>Description</label><textarea name="desc" rows="3"></textarea></div>
+  <div class="fr"><div class="fld"><label>GitHub URL</label><input type="url" name="gh" /></div><div class="fld"><label>Live URL</label><input type="url" name="lv" /></div></div>\`);
+  document.getElementById('prlist').appendChild(d);
+}
+function addEd(){
+  const d=tmpl(\`<div class="dyn-hdr"><span class="dyn-lbl">Education</span><button class="btn-rm" onclick="rm(this)">✕ Remove</button></div>
+  <div class="fr"><div class="fld"><label>Institution</label><input type="text" name="ins" /></div><div class="fld"><label>Degree</label><input type="text" name="deg" /></div></div>
+  <div class="fr"><div class="fld"><label>Field of Study</label><input type="text" name="fld" /></div><div class="fld"><label>Period</label><input type="text" name="per" /></div></div>
+  <div class="fld"><label>CGPA / Grade</label><input type="text" name="cgpa" /></div>\`);
+  document.getElementById('edlist').appendChild(d);
+}
+function addCe(){
+  const d=tmpl(\`<div class="dyn-hdr"><span class="dyn-lbl">Certification</span><button class="btn-rm" onclick="rm(this)">✕ Remove</button></div>
+  <div class="fr"><div class="fld"><label>Certificate Name</label><input type="text" name="nm" /></div><div class="fld"><label>Issuing Org</label><input type="text" name="iss" /></div></div>
+  <div class="fr"><div class="fld"><label>Date</label><input type="text" name="dt" /></div><div class="fld"><label>URL</label><input type="url" name="url" /></div></div>\`);
+  document.getElementById('celist').appendChild(d);
+}
+function collectF(){
+  const links=[...document.querySelectorAll('#llist .li')].map(i=>({platform:i.querySelector('.lbadge').textContent,url:i.querySelector('.linput').value.trim()})).filter(l=>l.url);
+  const experience=[...document.querySelectorAll('#elist .dyn-item')].map(el=>({role:el.querySelector('[name=role]')?.value?.trim()||'',company:el.querySelector('[name=co]')?.value?.trim()||'',period:el.querySelector('[name=per]')?.value?.trim()||'',description:el.querySelector('[name=desc]')?.value?.trim()||'',skills:(el.querySelector('[name=sk]')?.value||'').split(',').map(s=>s.trim()).filter(Boolean)})).filter(e=>e.role||e.company);
+  const projects=[...document.querySelectorAll('#prlist .dyn-item')].map(el=>({name:el.querySelector('[name=nm]')?.value?.trim()||'',description:el.querySelector('[name=desc]')?.value?.trim()||'',githubUrl:el.querySelector('[name=gh]')?.value?.trim()||'',liveUrl:el.querySelector('[name=lv]')?.value?.trim()||'',tags:(el.querySelector('[name=tg]')?.value||'').split(',').map(s=>s.trim()).filter(Boolean)})).filter(p=>p.name);
+  const education=[...document.querySelectorAll('#edlist .dyn-item')].map(el=>({institution:el.querySelector('[name=ins]')?.value?.trim()||'',degree:el.querySelector('[name=deg]')?.value?.trim()||'',field:el.querySelector('[name=fld]')?.value?.trim()||'',period:el.querySelector('[name=per]')?.value?.trim()||'',cgpa:el.querySelector('[name=cgpa]')?.value?.trim()||''})).filter(e=>e.institution||e.degree);
+  const certifications=[...document.querySelectorAll('#celist .dyn-item')].map(el=>({name:el.querySelector('[name=nm]')?.value?.trim()||'',issuer:el.querySelector('[name=iss]')?.value?.trim()||'',date:el.querySelector('[name=dt]')?.value?.trim()||'',url:el.querySelector('[name=url]')?.value?.trim()||''})).filter(c=>c.name);
+  const lcUser=g('lcu'),lcTotal=parseInt(g('lct'))||0;
+  const leetcode=(lcUser||lcTotal)?{username:lcUser,solved:lcTotal,hard:parseInt(g('lch'))||0,medium:parseInt(g('lcm'))||0,easy:parseInt(g('lce'))||0,rating:parseInt(g('lcr'))||0}:null;
+  return{name:g('pn'),title:g('pt'),bio:g('pb'),location:g('pl'),email:g('pe'),skills:g('psk').split(',').map(s=>s.trim()).filter(Boolean),links,experience,projects,education,certifications,leetcode,template:parseInt(g('ptmpl'))||pd.template||1};
+}
+async function saveP(){
+  const b=document.querySelector('.btn-save');const s=document.getElementById('sst');
+  b.disabled=true;b.textContent='Saving…';s.textContent='';
+  try{
+    const r=await fetch('/api/builder/my-portfolio',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({data:collectF()})});
+    if(r.ok){s.textContent='✓ Saved!';setTimeout(()=>s.textContent='',3000);}else s.textContent='✗ Failed';
+  }catch{s.textContent='✗ Network error';}
+  finally{b.disabled=false;b.textContent='Save Changes';}
+}
+async function loadC(){
+  const cl=document.getElementById('clist');cl.innerHTML='<div class="empty">Loading…</div>';
+  try{
+    const r=await fetch('/api/builder/contacts',{headers:{'Authorization':'Bearer '+tok}});
+    const d=await r.json();const contacts=d.contacts||[];
+    if(!contacts.length){cl.innerHTML='<div class="empty">No contact form submissions yet.</div>';return;}
+    cl.innerHTML=contacts.map(c=>\`<div class="ccard"><div class="cchdr"><div class="ccname">\${c.name||'Anonymous'}</div><div class="ccdate">\${new Date(c.date).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div></div><div class="ccemail">\${c.email||''}</div><div class="ccmsg">\${c.message||''}</div></div>\`).join('');
+  }catch{cl.innerHTML='<div class="empty">Failed to load.</div>';}
+}
+if(tok){showPanel();loadPD();}
+</script>
+</body></html>`;
+}
 
 function notFoundPage(username: string) {
   return `<!DOCTYPE html><html><head><title>Portfolio not found</title><style>body{background:#0a0a0a;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:16px}a{color:#4ade80;text-decoration:none}</style></head><body><h2>Portfolio not found</h2><p>@${username} hasn't created a portfolio yet.</p><a href="/">Create yours →</a></body></html>`;
@@ -267,6 +577,21 @@ a{color:var(--ac);text-decoration:none}a:hover{text-decoration:underline}
 .tags,.skills-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .tag{font-size:11px;font-family:${cfg.mono};padding:2px 8px;background:${cfg.tBg};color:${cfg.tFg};border:1px solid ${cfg.tBd};border-radius:4px}
 .skill-tag{font-size:12px;font-family:${cfg.mono};padding:5px 12px;background:var(--s);border:1px solid var(--b);border-radius:6px;color:var(--fg)}
+.cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.cert-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px}
+.cert-name{font-size:13px;font-weight:600;margin-bottom:4px}.cert-meta{font-size:11px;color:var(--mu);font-family:${cfg.mono};margin-bottom:6px}
+.cert-link{font-size:11px;color:var(--ac);font-family:${cfg.mono}}
+.lc-wrap{display:flex;flex-direction:column;gap:12px}.lc-username{font-size:12px;font-family:${cfg.mono};color:var(--ac)}
+.lc-stats{display:flex;gap:10px;flex-wrap:wrap}
+.lc-stat{display:flex;flex-direction:column;align-items:center;background:var(--s);border:1px solid var(--b);border-radius:8px;padding:10px 14px;min-width:65px}
+.lc-val{font-size:20px;font-weight:700;font-family:${cfg.mono}}.lc-lbl{font-size:10px;color:var(--mu);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.lc-hard .lc-val{color:#ef4444}.lc-med .lc-val{color:#f59e0b}.lc-easy .lc-val{color:#22c55e}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:500px){.cf-row{grid-template-columns:1fr}}
+.cf-input{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--fg);font-family:inherit;width:100%;transition:border-color .15s}
+.cf-input:focus{outline:none;border-color:var(--ac)}.cf-msg{resize:vertical;margin-bottom:10px;display:block}
+.cf-btn{background:var(--ac);color:${cfg.avFg};border:none;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer}.cf-btn:hover{opacity:.9}
+.cf-status{font-size:13px;margin-top:10px}
 ${cfg.extra || ""}
 </style>
 </head>
@@ -285,6 +610,10 @@ ${cfg.extra || ""}
 ${d.experience?.length ? `<div class="section"><div class="sl">Work Experience.</div>${expHtml(d.experience)}</div>` : ""}
 ${d.projects?.length ? `<div class="section"><div class="sl">Projects.</div>${projHtml(d.projects, cfg.ac)}</div>` : ""}
 ${d.skills?.length ? `<div class="section"><div class="sl">Skills.</div><div class="skills-wrap">${skillsHtml(d.skills)}</div></div>` : ""}
+${d.education?.length ? `<div class="section"><div class="sl">Education.</div>${educationHtml(d.education)}</div>` : ""}
+${d.certifications?.length ? `<div class="section"><div class="sl">Certifications.</div>${certificationsHtml(d.certifications)}</div>` : ""}
+${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><div class="sl">LeetCode.</div>${leetcodeHtml(d.leetcode)}</div>` : ""}
+<div class="section"><div class="sl">Contact.</div>${contactFormSection(d.username)}</div>
 ${createBanner(d.username)}
 </div></div>
 </body></html>`;
@@ -321,16 +650,45 @@ function skillsHtml(skills: string[]): string {
   if (!skills?.length) return "";
   return skills.map(s => `<span class="skill-tag">${s}</span>`).join("");
 }
-function socialLinks(d: any, accent: string): string {
-  const links = [];
-  if (d.links?.github) links.push(`<a href="${d.links.github}" target="_blank">GitHub</a>`);
-  if (d.links?.linkedin) links.push(`<a href="${d.links.linkedin}" target="_blank">LinkedIn</a>`);
-  if (d.links?.website) links.push(`<a href="${d.links.website}" target="_blank">Website</a>`);
-  if (d.email) links.push(`<a href="mailto:${d.email}">Email</a>`);
-  return links.join("");
+function socialLinks(d: any, _accent: string): string {
+  const items: string[] = [];
+  if (Array.isArray(d.links)) {
+    d.links.forEach((l: any) => {
+      if (!l.url) return;
+      const href = l.platform === 'Email' ? `mailto:${l.url.replace(/^mailto:/,'')}` : l.url;
+      items.push(`<a href="${href}" target="_blank" rel="noopener">${l.platform}</a>`);
+    });
+    if (d.email && !d.links.find((l: any) => l.platform === 'Email')) items.push(`<a href="mailto:${d.email}">Email</a>`);
+  } else if (d.links) {
+    if (d.links.github) items.push(`<a href="${d.links.github}" target="_blank">GitHub</a>`);
+    if (d.links.linkedin) items.push(`<a href="${d.links.linkedin}" target="_blank">LinkedIn</a>`);
+    if (d.links.website) items.push(`<a href="${d.links.website}" target="_blank">Website</a>`);
+    if (d.links.twitter) items.push(`<a href="${d.links.twitter}" target="_blank">Twitter</a>`);
+    if (d.email) items.push(`<a href="mailto:${d.email}">Email</a>`);
+  } else if (d.email) { items.push(`<a href="mailto:${d.email}">Email</a>`); }
+  return items.join('');
+}
+function educationHtml(edu: any[]): string {
+  if (!edu?.length) return '';
+  return edu.map(e => `<div class="exp-item"><div class="exp-dot"></div><div class="exp-body">
+    <div class="exp-head"><strong>${e.degree || ''}${e.field ? ` in ${e.field}` : ''}</strong><span class="period">${e.period || ''}</span></div>
+    <div class="company">${e.institution || ''}${e.cgpa ? ` · ${e.cgpa}` : ''}</div>
+    ${e.description ? `<p>${e.description}</p>` : ''}</div></div>`).join('');
+}
+function certificationsHtml(certs: any[]): string {
+  if (!certs?.length) return '';
+  return `<div class="cert-grid">${certs.map(c => `<div class="cert-card"><div class="cert-name">${c.name || ''}</div><div class="cert-meta">${c.issuer || ''}${c.date ? ` · ${c.date}` : ''}</div>${c.url ? `<a href="${c.url}" target="_blank" class="cert-link">View ↗</a>` : ''}</div>`).join('')}</div>`;
+}
+function leetcodeHtml(lc: any): string {
+  if (!lc || (!lc.username && !lc.solved)) return '';
+  return `<div class="lc-wrap">${lc.username ? `<div class="lc-username">@${lc.username}</div>` : ''}<div class="lc-stats">${lc.solved ? `<div class="lc-stat"><span class="lc-val">${lc.solved}</span><span class="lc-lbl">Total</span></div>` : ''}${lc.hard ? `<div class="lc-stat lc-hard"><span class="lc-val">${lc.hard}</span><span class="lc-lbl">Hard</span></div>` : ''}${lc.medium ? `<div class="lc-stat lc-med"><span class="lc-val">${lc.medium}</span><span class="lc-lbl">Medium</span></div>` : ''}${lc.easy ? `<div class="lc-stat lc-easy"><span class="lc-val">${lc.easy}</span><span class="lc-lbl">Easy</span></div>` : ''}${lc.rating ? `<div class="lc-stat"><span class="lc-val">${lc.rating}</span><span class="lc-lbl">Rating</span></div>` : ''}</div></div>`;
+}
+function contactFormSection(username: string): string {
+  return `<div id="cf-wrap"><form id="cf" onsubmit="cfSubmit(event)"><div class="cf-row"><input type="text" name="cfn" placeholder="Your name" required class="cf-input" /><input type="email" name="cfe" placeholder="Your email" required class="cf-input" /></div><textarea name="cfm" rows="4" placeholder="Your message..." required class="cf-input cf-msg"></textarea><button type="submit" class="cf-btn">Send Message →</button></form><div id="cf-status" class="cf-status"></div></div>
+<script>async function cfSubmit(e){e.preventDefault();const f=e.target;const btn=f.querySelector('.cf-btn');btn.disabled=true;btn.textContent='Sending…';const s=document.getElementById('cf-status');try{const r=await fetch('/p/${username}/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.cfn.value,email:f.cfe.value,message:f.cfm.value})});if(r.ok){s.textContent='✓ Message sent!';s.style.color='#4ade80';f.reset();}else{s.textContent='✗ Failed to send.';s.style.color='#ef4444';}}catch{s.textContent='✗ Network error.';}finally{btn.disabled=false;btn.textContent='Send Message →';}}</script>`;
 }
 function createBanner(username: string): string {
-  return `<div style="text-align:center;padding:24px;border-top:1px solid rgba(255,255,255,0.07);margin-top:48px"><a href="/" style="font-size:12px;opacity:0.4;text-decoration:none;font-family:monospace">✦ built with parshant.portfolio — create yours</a></div>`;
+  return `<div style="text-align:center;padding:24px;border-top:1px solid rgba(128,128,128,0.12);margin-top:48px"><a href="/" style="font-size:12px;opacity:0.35;text-decoration:none;font-family:monospace">✦ built with parshant.portfolio — create yours</a></div>`;
 }
 
 /* Template 1 – Dark Minimal (matches current portfolio) */
@@ -393,6 +751,10 @@ header{display:flex;align-items:flex-start;gap:28px;padding-bottom:40px;border-b
 ${d.experience?.length ? `<div class="section"><div class="section-label">Work Experience.</div>${expHtml(d.experience)}</div>` : ""}
 ${d.projects?.length ? `<div class="section"><div class="section-label">Projects.</div>${projHtml(d.projects, acc)}</div>` : ""}
 ${d.skills?.length ? `<div class="section"><div class="section-label">Skills.</div><div class="skills-wrap">${skillsHtml(d.skills)}</div></div>` : ""}
+${d.education?.length ? `<div class="section"><div class="section-label">Education.</div>${educationHtml(d.education)}</div>` : ""}
+${d.certifications?.length ? `<div class="section"><div class="section-label">Certifications.</div>${certificationsHtml(d.certifications)}</div>` : ""}
+${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><div class="section-label">LeetCode.</div>${leetcodeHtml(d.leetcode)}</div>` : ""}
+<div class="section"><div class="section-label">Contact.</div>${contactFormSection(d.username)}</div>
 ${createBanner(d.username)}
 </div>
 </body></html>`;
@@ -458,6 +820,10 @@ a{color:#3b5bdb;text-decoration:none}a:hover{text-decoration:underline}
 ${d.experience?.length ? `<div class="section"><h2>Experience</h2>${expHtml(d.experience)}</div>` : ""}
 ${d.projects?.length ? `<div class="section"><h2>Projects</h2>${projHtml(d.projects, "#3b5bdb")}</div>` : ""}
 ${d.skills?.length ? `<div class="section"><h2>Skills</h2><div class="skills-wrap">${skillsHtml(d.skills)}</div></div>` : ""}
+${d.education?.length ? `<div class="section"><h2>Education</h2>${educationHtml(d.education)}</div>` : ""}
+${d.certifications?.length ? `<div class="section"><h2>Certifications</h2>${certificationsHtml(d.certifications)}</div>` : ""}
+${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><h2>LeetCode</h2>${leetcodeHtml(d.leetcode)}</div>` : ""}
+<div class="section"><h2>Contact</h2>${contactFormSection(d.username)}</div>
 ${createBanner(d.username)}
 </div>
 </body></html>`;
@@ -528,6 +894,10 @@ a{color:#e879f9;text-decoration:none}a:hover{text-decoration:underline}
 ${d.experience?.length ? `<div class="section"><div class="section-label">Experience</div>${expHtml(d.experience)}</div>` : ""}
 ${d.projects?.length ? `<div class="section"><div class="section-label">Projects</div><div class="proj-grid">${projHtml(d.projects, "#a855f7")}</div></div>` : ""}
 ${d.skills?.length ? `<div class="section"><div class="section-label">Skills</div><div class="skills-wrap">${skillsHtml(d.skills)}</div></div>` : ""}
+${d.education?.length ? `<div class="section"><div class="section-label">Education</div>${educationHtml(d.education)}</div>` : ""}
+${d.certifications?.length ? `<div class="section"><div class="section-label">Certifications</div>${certificationsHtml(d.certifications)}</div>` : ""}
+${(d.leetcode?.solved || d.leetcode?.username) ? `<div class="section"><div class="section-label">LeetCode</div>${leetcodeHtml(d.leetcode)}</div>` : ""}
+<div class="section"><div class="section-label">Contact</div>${contactFormSection(d.username)}</div>
 ${createBanner(d.username)}
 </div>
 </body></html>`;
