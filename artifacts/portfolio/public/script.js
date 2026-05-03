@@ -463,6 +463,108 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
     return el;
   }
 
+  /* ── Circular photo crop modal ── */
+  function showCropModal(src, onConfirm) {
+    const VIEWPORT = 300;
+    const CIRCLE_R = 145;
+
+    const modal = document.createElement('div');
+    modal.className = 'admin-crop-modal';
+    modal.innerHTML = `
+      <div class="admin-crop-box">
+        <p class="admin-crop-hint">Drag to reposition &nbsp;·&nbsp; scroll or slide to zoom</p>
+        <div class="admin-crop-viewport">
+          <img class="admin-crop-img" src="${src}" draggable="false">
+          <svg class="admin-crop-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <mask id="acmask">
+                <rect width="300" height="300" fill="white"/>
+                <circle cx="150" cy="150" r="${CIRCLE_R}" fill="black"/>
+              </mask>
+            </defs>
+            <rect width="300" height="300" fill="black" opacity="0.6" mask="url(#acmask)"/>
+            <circle cx="150" cy="150" r="${CIRCLE_R}" fill="none" stroke="hsl(142,71%,45%)" stroke-width="2.5" opacity="0.9"/>
+          </svg>
+        </div>
+        <div class="admin-crop-zoom-row">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="range" class="admin-crop-slider" min="50" max="300" value="100" step="1">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </div>
+        <div class="admin-crop-btns">
+          <button class="admin-crop-cancel">Cancel</button>
+          <button class="admin-crop-apply">✓ Use Photo</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const img   = modal.querySelector('.admin-crop-img');
+    const vp    = modal.querySelector('.admin-crop-viewport');
+    const slider = modal.querySelector('.admin-crop-slider');
+    let offsetX = 0, offsetY = 0, zoom = 1, fitScale = 1;
+    let dragging = false, dStartX, dStartY, dOffX, dOffY;
+
+    function applyTransform() {
+      img.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px)) scale(${fitScale * zoom})`;
+    }
+
+    function onImgReady() {
+      fitScale = Math.max(VIEWPORT / img.naturalWidth, VIEWPORT / img.naturalHeight);
+      applyTransform();
+    }
+    if (img.complete && img.naturalWidth) onImgReady();
+    else img.addEventListener('load', onImgReady);
+
+    // Mouse drag
+    vp.addEventListener('mousedown', e => {
+      dragging = true; dStartX = e.clientX; dStartY = e.clientY; dOffX = offsetX; dOffY = offsetY; e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return; offsetX = dOffX + (e.clientX - dStartX); offsetY = dOffY + (e.clientY - dStartY); applyTransform();
+    });
+    document.addEventListener('mouseup', () => { dragging = false; });
+
+    // Touch drag
+    vp.addEventListener('touchstart', e => {
+      const t = e.touches[0]; dragging = true; dStartX = t.clientX; dStartY = t.clientY; dOffX = offsetX; dOffY = offsetY;
+    }, { passive: true });
+    vp.addEventListener('touchmove', e => {
+      if (!dragging || !e.touches[0]) return;
+      const t = e.touches[0]; offsetX = dOffX + (t.clientX - dStartX); offsetY = dOffY + (t.clientY - dStartY);
+      applyTransform(); e.preventDefault();
+    }, { passive: false });
+    vp.addEventListener('touchend', () => { dragging = false; });
+
+    // Zoom
+    slider.addEventListener('input', () => { zoom = slider.value / 100; applyTransform(); });
+    vp.addEventListener('wheel', e => {
+      zoom = Math.max(0.5, Math.min(3, zoom - e.deltaY * 0.005));
+      slider.value = zoom * 100; applyTransform(); e.preventDefault();
+    }, { passive: false });
+
+    modal.querySelector('.admin-crop-cancel').addEventListener('click', () => modal.remove());
+
+    modal.querySelector('.admin-crop-apply').addEventListener('click', () => {
+      const OUT = 400;
+      const canvas = document.createElement('canvas');
+      canvas.width = OUT; canvas.height = OUT;
+      const ctx = canvas.getContext('2d');
+      ctx.beginPath(); ctx.arc(OUT / 2, OUT / 2, OUT / 2, 0, Math.PI * 2); ctx.clip();
+
+      const s = fitScale * zoom;
+      // Map viewport top-left (0,0) → image coordinate
+      const srcX = -(VIEWPORT / 2 + offsetX) / s + img.naturalWidth  / 2;
+      const srcY = -(VIEWPORT / 2 + offsetY) / s + img.naturalHeight / 2;
+      const srcW = VIEWPORT / s;
+      const srcH = VIEWPORT / s;
+      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, OUT, OUT);
+
+      onConfirm(canvas.toDataURL('image/jpeg', 0.92));
+      modal.remove();
+    });
+  }
+
   /* ── Inject all admin controls into DOM ── */
   function injectControls() {
     /* Profile photo */
@@ -475,8 +577,15 @@ chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMe
       fi.addEventListener('change', e => {
         const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = ev => { const img = avatarDiv.querySelector('img'); if (img) img.src = ev.target.result; newPhotoUrl = ev.target.result; };
+        reader.onload = ev => {
+          showCropModal(ev.target.result, (cropped) => {
+            const img = avatarDiv.querySelector('img');
+            if (img) img.src = cropped;
+            newPhotoUrl = cropped;
+          });
+        };
         reader.readAsDataURL(file);
+        fi.value = ''; // reset so same file can be re-picked
       });
       lbl.appendChild(fi); avatarDiv.appendChild(lbl);
     }
