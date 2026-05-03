@@ -1,0 +1,26 @@
+services:
+  # ── Backend: Flask API ─────────────────────────────────────────────────────
+  - type: web
+    name: portfolio-api
+    runtime: python
+    rootDir: artifacts/api-server
+    buildCommand: pip install flask flask-cors requests psycopg2-binary
+    startCommand: python app.py
+    plan: free
+    envVars:
+      - key: SUPABASE_URL
+        sync: false          # you will paste this in Render dashboard
+      - key: DOCUMIND_API_KEY
+        sync: false          # you will paste this in Render dashboard
+
+  # ── Frontend: Vite SPA (Static Site — never sleeps, always fast) ───────────
+  - type: web
+    name: portfolio-frontend
+    runtime: static
+    rootDir: .
+    buildCommand: pnpm install && pnpm --filter @workspace/portfolio run build
+    staticPublishPath: artifacts/portfolio/dist
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        value: https://portfolio-api.onrender.com   # update to your actual API service URL
