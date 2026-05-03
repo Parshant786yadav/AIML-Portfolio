@@ -427,52 +427,113 @@ button.create-fab {
    MANUAL EDITOR
 ═══════════════════════════════════════════ */
 
-/* Override the generic wizard-step styles for manual editor:
-   no padding, stretch (not center), and block the step's own
-   scroll so only manual-editor scrolls. */
+/* Manual editor step — full bleed, no generic padding/centering */
 #wiz-step-manual {
   padding: 0;
   align-items: stretch;
-  overflow-y: hidden;
+  overflow: hidden;
 }
 
+/* Manual editor: flex column, topbar + two-col body */
 .manual-editor {
   display: flex;
   flex-direction: column;
-  gap: 0;
   width: 100%;
   height: 100%;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: hsl(0 0% 18%) transparent;
+  overflow: hidden;
 }
-.manual-editor::-webkit-scrollbar { width: 5px; }
-.manual-editor::-webkit-scrollbar-thumb { background: hsl(0 0% 18%); border-radius: 3px; }
 
+/* ── Topbar ── */
 .me-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 24px 28px 20px;
+  padding: 16px 24px;
   border-bottom: 1px solid hsl(0 0% 12%);
-  position: sticky;
-  top: 0;
   background: hsl(0 0% 5%);
-  z-index: 10;
   flex-shrink: 0;
+  z-index: 10;
 }
 .me-heading {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: hsl(0 0% 92%);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 .me-subheading {
-  font-size: 12px;
+  font-size: 11px;
   color: hsl(0 0% 42%);
 }
-.me-gen-top { white-space: nowrap; flex-shrink: 0; }
+/* Button stays compact — override wiz-btn-primary width:100% */
+.me-gen-top {
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: auto !important;
+  padding: 10px 20px !important;
+  font-size: 13px !important;
+}
+
+/* ── Two-column body ── */
+.me-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Left: scrollable form */
+.me-form-col {
+  overflow-y: auto;
+  border-right: 1px solid hsl(0 0% 10%);
+  scrollbar-width: thin;
+  scrollbar-color: hsl(0 0% 18%) transparent;
+}
+.me-form-col::-webkit-scrollbar { width: 4px; }
+.me-form-col::-webkit-scrollbar-thumb { background: hsl(0 0% 18%); border-radius: 3px; }
+
+/* Right: live preview */
+.me-preview-col {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: hsl(0 0% 3%);
+}
+.me-preview-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid hsl(0 0% 10%);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: hsl(0 0% 40%);
+  flex-shrink: 0;
+}
+.me-preview-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: hsl(142 71% 45%);
+  animation: preview-pulse 2s ease-in-out infinite;
+}
+@keyframes preview-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.me-preview-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #0a0a0a;
+}
+
+/* Collapse preview on small screens */
+@media (max-width: 860px) {
+  .me-body { grid-template-columns: 1fr; }
+  .me-preview-col { display: none; }
+}
 
 .me-section {
   padding: 24px 28px;

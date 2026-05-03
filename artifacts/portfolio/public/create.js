@@ -108,6 +108,103 @@
 
   /* ── manual editor ── */
   let manualInited = false;
+  let previewDebounceTimer = null;
+
+  function schedulePreviewUpdate() {
+    clearTimeout(previewDebounceTimer);
+    previewDebounceTimer = setTimeout(updateManualPreview, 400);
+  }
+
+  function updateManualPreview() {
+    const iframe = document.getElementById('me-preview-iframe');
+    if (!iframe) return;
+    const d = collectManualData();
+    iframe.srcdoc = buildPreviewHtml(d);
+  }
+
+  function buildPreviewHtml(d) {
+    const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const initials = (d.name || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+    const accent = '#4ade80';
+
+    const linksHtml = (d.links || []).filter(l => l.url).map(l =>
+      `<a href="${esc(l.url)}" style="display:inline-block;padding:4px 12px;border:1px solid #222;border-radius:20px;font-size:11px;color:#888;text-decoration:none;margin:2px 2px 2px 0;font-family:monospace">${esc(l.platform)}</a>`
+    ).join('');
+
+    const expHtml = (d.experience || []).filter(e => e.role || e.company).map(e => `
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px">
+          <strong style="color:#e0e0e0;font-size:13px">${esc(e.role)}</strong>
+          <span style="font-size:11px;color:#555;font-family:monospace">${esc(e.period)}</span>
+        </div>
+        <div style="font-size:12px;color:${accent};margin-bottom:4px">${esc(e.company)}${e.location ? ` · ${esc(e.location)}` : ''}</div>
+        ${e.description ? `<div style="font-size:12px;color:#777;line-height:1.5">${esc(e.description)}</div>` : ''}
+        ${e.skills?.length ? `<div style="margin-top:6px">${e.skills.map(s=>`<span style="font-size:10px;padding:2px 8px;background:#111;border-radius:10px;color:#555;margin-right:4px">${esc(s)}</span>`).join('')}</div>` : ''}
+      </div>`).join('');
+
+    const projHtml = (d.projects || []).filter(p => p.name).map(p => `
+      <div style="margin-bottom:10px;padding:12px;background:#0f0f0f;border-radius:8px;border:1px solid #1a1a1a">
+        <div style="font-size:13px;font-weight:600;color:#e0e0e0;margin-bottom:4px">${esc(p.name)}</div>
+        ${p.description ? `<div style="font-size:12px;color:#777;margin-bottom:6px">${esc(p.description)}</div>` : ''}
+        ${p.tags?.length ? `<div>${p.tags.map(t=>`<span style="font-size:10px;padding:2px 8px;background:#161616;border-radius:10px;color:#555;margin-right:4px">${esc(t)}</span>`).join('')}</div>` : ''}
+      </div>`).join('');
+
+    const skillsHtml = (d.skills || []).map(s =>
+      `<span style="display:inline-block;padding:4px 12px;background:#0f0f0f;border:1px solid #1e1e1e;border-radius:16px;font-size:11px;color:#aaa;margin:2px;font-family:monospace">${esc(s)}</span>`
+    ).join('');
+
+    const eduHtml = (d.education || []).filter(e => e.institution || e.degree).map(e => `
+      <div style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:600;color:#e0e0e0">${esc(e.institution)}</div>
+        <div style="font-size:12px;color:#777">${[e.degree, e.field].filter(Boolean).map(esc).join(' — ')}${e.period ? ` · ${esc(e.period)}` : ''}${e.cgpa ? ` · CGPA ${esc(e.cgpa)}` : ''}</div>
+      </div>`).join('');
+
+    const certHtml = (d.certifications || []).filter(c => c.name).map(c => `
+      <div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#e0e0e0">${esc(c.name)}</div>
+          ${c.issuer ? `<div style="font-size:11px;color:#777">${esc(c.issuer)}${c.date ? ` · ${esc(c.date)}` : ''}</div>` : ''}
+        </div>
+        ${c.url ? `<a href="${esc(c.url)}" style="font-size:11px;color:${accent};text-decoration:none">View ↗</a>` : ''}
+      </div>`).join('');
+
+    const lc = d.leetcode;
+    const lcHtml = (lc && (lc.username || lc.solved)) ? `
+      <div style="padding:12px;background:#0f0f0f;border-radius:8px;border:1px solid #1a1a1a;display:flex;gap:20px;flex-wrap:wrap;align-items:center">
+        ${lc.username ? `<span style="font-size:12px;color:${accent};font-family:monospace">@${esc(lc.username)}</span>` : ''}
+        ${lc.solved ? `<span style="font-size:12px;color:#e0e0e0"><strong>${lc.solved}</strong> <span style="color:#555">solved</span></span>` : ''}
+        ${lc.hard ? `<span style="font-size:11px;color:#ef4444">${lc.hard} hard</span>` : ''}
+        ${lc.medium ? `<span style="font-size:11px;color:#f59e0b">${lc.medium} med</span>` : ''}
+        ${lc.easy ? `<span style="font-size:11px;color:${accent}">${lc.easy} easy</span>` : ''}
+      </div>` : '';
+
+    const section = (label, content) => content ? `
+      <div style="margin-bottom:24px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#333;font-family:monospace;margin-bottom:10px;font-weight:600">${label}</div>
+        ${content}
+      </div>` : '';
+
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0a0a0a;color:#c0c0c0;font-family:system-ui,-apple-system,sans-serif;font-size:13px;line-height:1.6;padding:24px 20px;min-height:100vh}</style>
+      </head><body>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+        <div style="width:44px;height:44px;border-radius:50%;background:#0f2a1a;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:${accent};flex-shrink:0;border:2px solid #1a3a2a">${esc(initials)}</div>
+        <div style="min-width:0">
+          <div style="font-size:18px;font-weight:700;color:#f0f0f0">${d.name ? esc(d.name) : '<span style="color:#2a2a2a">Your Name</span>'}</div>
+          ${d.title ? `<div style="font-size:12px;color:${accent};margin-top:1px">${esc(d.title)}</div>` : ''}
+          ${d.location ? `<div style="font-size:11px;color:#444;margin-top:2px">📍 ${esc(d.location)}</div>` : ''}
+        </div>
+      </div>
+      ${d.bio ? `<div style="font-size:12px;color:#777;line-height:1.6;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #111">${esc(d.bio)}</div>` : ''}
+      ${linksHtml ? `<div style="margin-bottom:20px">${linksHtml}</div>` : ''}
+      ${section('Work Experience', expHtml)}
+      ${section('Projects', projHtml)}
+      ${section('Skills', skillsHtml)}
+      ${section('Education', eduHtml)}
+      ${section('Certifications', certHtml)}
+      ${section('LeetCode', lcHtml)}
+    </body></html>`;
+  }
 
   function initManualEditor() {
     if (manualInited) return;
@@ -119,11 +216,12 @@
       if (!platform) return;
       addLinkItem(platform, '');
       sel.value = '';
+      schedulePreviewUpdate();
     });
-    document.getElementById('me-add-exp')?.addEventListener('click', addExperience);
-    document.getElementById('me-add-proj')?.addEventListener('click', addProject);
-    document.getElementById('me-add-edu')?.addEventListener('click', addEducation);
-    document.getElementById('me-add-cert')?.addEventListener('click', addCertification);
+    document.getElementById('me-add-exp')?.addEventListener('click', () => { addExperience(); schedulePreviewUpdate(); });
+    document.getElementById('me-add-proj')?.addEventListener('click', () => { addProject(); schedulePreviewUpdate(); });
+    document.getElementById('me-add-edu')?.addEventListener('click', () => { addEducation(); schedulePreviewUpdate(); });
+    document.getElementById('me-add-cert')?.addEventListener('click', () => { addCertification(); schedulePreviewUpdate(); });
     document.getElementById('me-generate-btn')?.addEventListener('click', handleManualGenerate);
     document.getElementById('me-generate-btn-bottom')?.addEventListener('click', handleManualGenerate);
     const skillInput = document.getElementById('me-skill-input');
@@ -131,11 +229,21 @@
     function tryAddSkill() {
       const val = skillInput?.value?.trim(); if (!val) return;
       addSkillChip(val); if (skillInput) skillInput.value = '';
+      schedulePreviewUpdate();
     }
     skillInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); tryAddSkill(); } });
     addSkillBtn?.addEventListener('click', tryAddSkill);
     addExperience();
     addProject();
+
+    /* Live preview: update on any input/change in the form column */
+    const formCol = document.querySelector('.me-form-col');
+    if (formCol) {
+      formCol.addEventListener('input', schedulePreviewUpdate);
+      formCol.addEventListener('change', schedulePreviewUpdate);
+    }
+    /* Initial render */
+    updateManualPreview();
   }
 
   /* Links */

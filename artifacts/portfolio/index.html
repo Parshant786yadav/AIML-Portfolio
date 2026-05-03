@@ -609,6 +609,8 @@
       <!-- Step 3b: Manual Editor -->
       <div class="wizard-step" id="wiz-step-manual">
         <div class="manual-editor">
+
+          <!-- Sticky topbar -->
           <div class="me-topbar">
             <div>
               <h2 class="me-heading">Your Portfolio Details</h2>
@@ -617,107 +619,129 @@
             <button class="wiz-btn-primary me-gen-top" id="me-generate-btn" type="button">Generate Portfolio →</button>
           </div>
 
-          <!-- Personal Info -->
-          <div class="me-section">
-            <div class="me-section-title">Personal Info</div>
-            <div class="me-field-row">
-              <div class="me-field"><label>Full Name <span class="me-required">*</span></label><input type="text" id="me-name" placeholder="e.g. Jane Smith" /></div>
-              <div class="me-field"><label>Job Title / Role</label><input type="text" id="me-title" placeholder="e.g. Frontend Developer" /></div>
-            </div>
-            <div class="me-field-row">
-              <div class="me-field"><label>Location</label><input type="text" id="me-location" placeholder="e.g. New York, USA" /></div>
-              <div class="me-field"><label>Email</label><input type="email" id="me-email" placeholder="your@email.com" /></div>
-            </div>
-            <div class="me-field"><label>Bio / About You</label><textarea id="me-bio" rows="4" placeholder="Write a short paragraph about yourself — your background, what you do, and what drives you..."></textarea></div>
-          </div>
+          <!-- Two-column body: form left, live preview right -->
+          <div class="me-body">
 
-          <!-- Links -->
-          <div class="me-section">
-            <div class="me-section-hdr">
-              <div class="me-section-title">Links & Profiles</div>
-            </div>
-            <div id="me-links-list" class="me-links-list"></div>
-            <div class="me-link-add-row">
-              <select id="me-link-platform-sel" class="me-link-platform-sel">
-                <option value="">Choose platform to add...</option>
-                <option>GitHub</option><option>LinkedIn</option><option>WhatsApp</option>
-                <option>Email</option><option>LeetCode</option><option>Website</option>
-                <option>Twitter / X</option><option>YouTube</option><option>Instagram</option>
-                <option>Medium</option><option>Dev.to</option><option>Behance</option>
-                <option>Dribbble</option><option>Custom</option>
-              </select>
-              <button class="me-add-btn" id="me-add-link-btn" type="button">+ Add Link</button>
-            </div>
-          </div>
+            <!-- Left: scrollable form -->
+            <div class="me-form-col">
 
-          <!-- Experience -->
-          <div class="me-section">
-            <div class="me-section-hdr">
-              <div class="me-section-title">Work Experience</div>
-              <button class="me-add-btn" id="me-add-exp" type="button">+ Add Experience</button>
-            </div>
-            <div id="me-exp-list"></div>
-          </div>
+              <!-- Personal Info -->
+              <div class="me-section">
+                <div class="me-section-title">Personal Info</div>
+                <div class="me-field-row">
+                  <div class="me-field"><label>Full Name <span class="me-required">*</span></label><input type="text" id="me-name" placeholder="e.g. Jane Smith" /></div>
+                  <div class="me-field"><label>Job Title / Role</label><input type="text" id="me-title" placeholder="e.g. Frontend Developer" /></div>
+                </div>
+                <div class="me-field-row">
+                  <div class="me-field"><label>Location</label><input type="text" id="me-location" placeholder="e.g. New York, USA" /></div>
+                  <div class="me-field"><label>Email</label><input type="email" id="me-email" placeholder="your@email.com" /></div>
+                </div>
+                <div class="me-field"><label>Bio / About You</label><textarea id="me-bio" rows="4" placeholder="Write a short paragraph about yourself — your background, what you do, and what drives you..."></textarea></div>
+              </div>
 
-          <!-- Projects -->
-          <div class="me-section">
-            <div class="me-section-hdr">
-              <div class="me-section-title">Projects</div>
-              <button class="me-add-btn" id="me-add-proj" type="button">+ Add Project</button>
-            </div>
-            <div id="me-proj-list"></div>
-          </div>
+              <!-- Links -->
+              <div class="me-section">
+                <div class="me-section-hdr">
+                  <div class="me-section-title">Links & Profiles</div>
+                </div>
+                <div id="me-links-list" class="me-links-list"></div>
+                <div class="me-link-add-row">
+                  <select id="me-link-platform-sel" class="me-link-platform-sel">
+                    <option value="">Choose platform to add...</option>
+                    <option>GitHub</option><option>LinkedIn</option><option>WhatsApp</option>
+                    <option>Email</option><option>LeetCode</option><option>Website</option>
+                    <option>Twitter / X</option><option>YouTube</option><option>Instagram</option>
+                    <option>Medium</option><option>Dev.to</option><option>Behance</option>
+                    <option>Dribbble</option><option>Custom</option>
+                  </select>
+                  <button class="me-add-btn" id="me-add-link-btn" type="button">+ Add Link</button>
+                </div>
+              </div>
 
-          <!-- Skills -->
-          <div class="me-section">
-            <div class="me-section-title">Skills</div>
-            <div class="me-tags-wrap" id="me-skills-wrap"></div>
-            <div class="me-tag-input-row">
-              <input type="text" id="me-skill-input" placeholder="Type a skill and press Enter" />
-              <button class="me-add-btn" id="me-add-skill-btn" type="button">Add</button>
-            </div>
-          </div>
+              <!-- Experience -->
+              <div class="me-section">
+                <div class="me-section-hdr">
+                  <div class="me-section-title">Work Experience</div>
+                  <button class="me-add-btn" id="me-add-exp" type="button">+ Add Experience</button>
+                </div>
+                <div id="me-exp-list"></div>
+              </div>
 
-          <!-- Education -->
-          <div class="me-section">
-            <div class="me-section-hdr">
-              <div class="me-section-title">Education</div>
-              <button class="me-add-btn" id="me-add-edu" type="button">+ Add Education</button>
-            </div>
-            <div id="me-edu-list"></div>
-          </div>
+              <!-- Projects -->
+              <div class="me-section">
+                <div class="me-section-hdr">
+                  <div class="me-section-title">Projects</div>
+                  <button class="me-add-btn" id="me-add-proj" type="button">+ Add Project</button>
+                </div>
+                <div id="me-proj-list"></div>
+              </div>
 
-          <!-- Certifications -->
-          <div class="me-section">
-            <div class="me-section-hdr">
-              <div class="me-section-title">Certifications</div>
-              <button class="me-add-btn" id="me-add-cert" type="button">+ Add Certification</button>
-            </div>
-            <div id="me-cert-list"></div>
-          </div>
+              <!-- Skills -->
+              <div class="me-section">
+                <div class="me-section-title">Skills</div>
+                <div class="me-tags-wrap" id="me-skills-wrap"></div>
+                <div class="me-tag-input-row">
+                  <input type="text" id="me-skill-input" placeholder="Type a skill and press Enter" />
+                  <button class="me-add-btn" id="me-add-skill-btn" type="button">Add</button>
+                </div>
+              </div>
 
-          <!-- LeetCode -->
-          <div class="me-section">
-            <div class="me-section-title">LeetCode / Competitive Programming</div>
-            <div class="me-field-row">
-              <div class="me-field"><label>LeetCode Username</label><input type="text" id="me-lc-username" placeholder="e.g. john_doe" /></div>
-              <div class="me-field"><label>Total Solved</label><input type="number" id="me-lc-total" placeholder="e.g. 200" min="0" /></div>
-            </div>
-            <div class="me-field-row">
-              <div class="me-field"><label>Hard Solved</label><input type="number" id="me-lc-hard" placeholder="e.g. 20" min="0" /></div>
-              <div class="me-field"><label>Medium Solved</label><input type="number" id="me-lc-medium" placeholder="e.g. 80" min="0" /></div>
-            </div>
-            <div class="me-field-row">
-              <div class="me-field"><label>Easy Solved</label><input type="number" id="me-lc-easy" placeholder="e.g. 100" min="0" /></div>
-              <div class="me-field"><label>Contest Rating (optional)</label><input type="number" id="me-lc-rating" placeholder="e.g. 1650" min="0" /></div>
-            </div>
-          </div>
+              <!-- Education -->
+              <div class="me-section">
+                <div class="me-section-hdr">
+                  <div class="me-section-title">Education</div>
+                  <button class="me-add-btn" id="me-add-edu" type="button">+ Add Education</button>
+                </div>
+                <div id="me-edu-list"></div>
+              </div>
 
-          <!-- Footer -->
-          <div class="me-footer">
-            <button class="wiz-btn-primary" id="me-generate-btn-bottom" type="button">Generate My Portfolio →</button>
-          </div>
-        </div>
+              <!-- Certifications -->
+              <div class="me-section">
+                <div class="me-section-hdr">
+                  <div class="me-section-title">Certifications</div>
+                  <button class="me-add-btn" id="me-add-cert" type="button">+ Add Certification</button>
+                </div>
+                <div id="me-cert-list"></div>
+              </div>
+
+              <!-- LeetCode -->
+              <div class="me-section">
+                <div class="me-section-title">LeetCode / Competitive Programming</div>
+                <div class="me-field-row">
+                  <div class="me-field"><label>LeetCode Username</label><input type="text" id="me-lc-username" placeholder="e.g. john_doe" /></div>
+                  <div class="me-field"><label>Total Solved</label><input type="number" id="me-lc-total" placeholder="e.g. 200" min="0" /></div>
+                </div>
+                <div class="me-field-row">
+                  <div class="me-field"><label>Hard Solved</label><input type="number" id="me-lc-hard" placeholder="e.g. 20" min="0" /></div>
+                  <div class="me-field"><label>Medium Solved</label><input type="number" id="me-lc-medium" placeholder="e.g. 80" min="0" /></div>
+                </div>
+                <div class="me-field-row">
+                  <div class="me-field"><label>Easy Solved</label><input type="number" id="me-lc-easy" placeholder="e.g. 100" min="0" /></div>
+                  <div class="me-field"><label>Contest Rating (optional)</label><input type="number" id="me-lc-rating" placeholder="e.g. 1650" min="0" /></div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="me-footer">
+                <button class="wiz-btn-primary" id="me-generate-btn-bottom" type="button">Generate My Portfolio →</button>
+              </div>
+
+            </div><!-- /me-form-col -->
+
+            <!-- Right: live preview -->
+            <div class="me-preview-col">
+              <div class="me-preview-hdr">
+                <span>Live Preview</span>
+                <span class="me-preview-dot"></span>
+              </div>
+              <iframe class="me-preview-iframe" id="me-preview-iframe"
+                sandbox="allow-same-origin allow-scripts"
+                title="Portfolio live preview"></iframe>
+            </div>
+
+          </div><!-- /me-body -->
+
+        </div><!-- /manual-editor -->
       </div>
 
       <!-- Step 3a: Chat Wizard -->
